@@ -52,11 +52,12 @@ ID: US-003
 Tytuł: Poruszanie się po widoku głównym.
 Opis: Użytkownik po zalogowaniu zostaje przekierowany do widoku głównego, w którym może podejmować akcje służące wygenerowaniu planu podróży lub zarządzania kontem.
 Kryteria akceptacji:
-- Użytkownik może przejść do okna profilu turystycznego po wyborze ikonki profilu w górnej części widoku. Z tego miejsca użytkownik może uzupełniać i edytować swoje preferencje turystyczne, oraz zarządzać swoim kontem.
-- Poniżej, znajduje się pole tekstowe do wprowadzenia opisu notatki, oraz przycisk do jej zapisania. Akceptowalna długość opisu to 1000 znaków.
-- Notatki umieszczane są naokoło centralnej części widoku, o losowym kolorze i w losowym miejscu, ale tak żeby nie zasłaniały innych elementow na widoku głównym. Na notatce widnieje jej opis w formie skrócej do 100 znaków.
+- Użytkownik może przejść do okna profilu turystycznego z topbar w górnej części widoku. Z tego miejsca użytkownik może uzupełniać i edytować swoje preferencje turystyczne.
+- Użytkownik może dodać nową notatkę z topbar w górnej części widoku. Akceptowalna długość opisu to 1000 znaków.
+- Notatki umieszczane są po bokach centralnej części widoku, o losowym kolorze i w losowym miejscu, ale tak żeby nie zasłaniały innych elementow na widoku głównym. Na notatce widnieje jej opis w formie skrócej do 100 znaków.
 - W centralnej części widoku znajdują sie 3 pola tekstowe, w których użytkownik może wpisać lokalizację punktu startowego podróży (państwo oraz miasto), oraz maksymalną odległość na jaką planujemy się oddalić podaną w kilometrach.
-- W dolnej części widoku znajduje sie przycisk "Generuj plan podróży".
+- Pod polami tekstowymi znajduje sie przycisk "Generuj plan podróży".
+- Pod przyciskiem "Generuj plan podróży" znajdują sie komponent do wyświetlania planu podróży: tekstu i przykładowego zdjęcia.
 
 ID: US-004
 Tytuł: Uzupełnienie profilu turystycznego
@@ -78,17 +79,16 @@ ID: US-006
 Tytuł: Zarządzanie notatkami
 Opis: Jako zalogowany użytkownik chcę mieć możliwość tworzenia, odczytywania, przeglądania, edytowania i usuwania notatek związanych z planowanymi wycieczkami, aby szybko zapisywać swoje pomysły.
 Kryteria akceptacji:
-- Użytkownik może dodać nową notatkę zawierającą wymagane informacje. Robi to w widoku głównym wpisując w polu tekstowym opis notatki i wybierając przycisk do zapisania.
+- Użytkownik może dodać nową notatkę zawierającą wymagane informacje. Robi to wywołując w widoku głównym z pozycji topbar okno modalne do uzupełnienia treści notatki.
 - Użytkownik ma dostęp do swoich notatek w widoku głównym. Cała treść notatki wyświetla się w osobnym oknie, po kliknięciu w wybraną notatkę. Wyjście z notatki następuje po wyborze przycisku "X" w prawym górnym rogu okna.
-- Użytkownik może edytować wybraną notatkę w widoku głównym. Po kliknięciu w wybraną notatkę i wyświetleniu jej w osobnym oknie, możliwe jest edytowanie aktualnej treści i zapisanie nowej po wyborze przycisku "Zapisz zmiany" - przycisk ten pojawia się dopiero po wprowadzeniu zmian w treści notatki.
+- Użytkownik może edytować wybraną notatkę w widoku głównym. Po kliknięciu w wybraną notatkę i wyświetleniu jej w osobnym oknie, możliwe jest edytowanie aktualnej treści i zapisanie nowej po wyborze przycisku "Zapisz".
 - Użytkownik może usunąć wybraną notatkę w widoku głównym. Po kliknięciu w wybraną notatkę możliwe jest usunięcie jej po wyborze przycisku do usuwania. Podczas usuwania użytkownik proszony jest o dodatkowe potwierdzenie tej czynności.
 
 ID: US-007
 Tytuł: Generowanie planu wycieczki
 Opis: Jako zalogowany użytkownik chcę generować szczegółowy plan wycieczki na podstawie wybranych notatek i profilu użytkownika.
 Kryteria akceptacji:
-- Użytkownik może wybrać jedną lub więcej notatek, na podstawie których, w połączeniu z danymi wpisanymi w profilu turystycznym, wygenerowany zostanie plan wycieczki.
-- Wyboru notatek dokonujemy poprzez zaznaczenie elementu CheckBox, który znajduje się przy każdej notatce.
+- Plan wycieczki generowany jest na podstawie profilu turystycznego, notatek oraz informacji na temat podróży: punktu startowego i maksymalnej odleglości od niego.
 - Generowanie następuje po wyborze przycisku "Generuj plan podróży" znajdujący się w widoku głównym.
 - Informacje odnośnie miejsca startu podróży i maksymalnej odległości na jaką planujemy się oddalić, są niezbędne do wygenerowania planu podróży. W innym wypadku wyświetlony zostaje stosowny komunikat.
 - Generowany plan zawiera listę miejsc, atrakcji, restauracji, w odpowiedniej kolejności, uwzględniając ich lokalizację oraz odległości. Zaproponowane miejsca posiadają krótki opis, przykładowe zdjęcie, oraz odległość od miejsca startu podróży.
