@@ -1,0 +1,59 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Profil użytkownika - Trip Planner">
+  <div class="container mx-auto py-6">
+    <div class="flex justify-between items-center p-4 border-b mb-6">
+      <h1 class="text-xl font-bold">Profil użytkownika</h1>
+      <a href="/generate" class="text-blue-600 hover:underline">Powrót do planera</a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6 max-w-3xl mx-auto">
+      <h2 class="text-lg font-semibold mb-4">Dane profilu</h2>
+      <p class="text-gray-500 mb-6">Uzupełnij swój profil podróżnika</p>
+
+      <div class="grid gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">Typ podróży</label>
+          <select class="w-full p-2 border rounded-md">
+            <option value="">Wybierz typ podróży</option>
+            <option value="miasta">Miasta</option>
+            <option value="architektura">Architektura</option>
+            <option value="natura">Natura</option>
+            <option value="plaze">Plaże</option>
+            <option value="gory">Góry</option>
+            <option value="atrakcje">Atrakcje</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Styl podróżowania</label>
+          <select class="w-full p-2 border rounded-md">
+            <option value="">Wybierz styl podróżowania</option>
+            <option value="intensywny">Intensywny</option>
+            <option value="odpoczynek">Odpoczynek</option>
+            <option value="hybryda">Hybryda</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Preferencje żywieniowe</label>
+          <select class="w-full p-2 border rounded-md">
+            <option value="">Wybierz preferencje żywieniowe</option>
+            <option value="dania_miesne">Dania mięsne</option>
+            <option value="dania_wegetarianskie">Dania wegetariańskie</option>
+            <option value="owoce_morza">Owoce morza</option>
+            <option value="kuchnia_lokalna">Kuchnia lokalna</option>
+          </select>
+        </div>
+
+        <div class="flex justify-end mt-6">
+          <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
+            Zapisz profil
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>

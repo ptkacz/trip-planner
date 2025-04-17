@@ -1,0 +1,37 @@
+---
+import Layout from "../../layouts/Layout.astro";
+---
+
+<Layout title="Edycja notatki - Trip Planner">
+  <div class="container mx-auto py-6">
+    <div class="flex justify-between items-center p-4 border-b mb-6">
+      <h1 class="text-xl font-bold">Edycja notatki</h1>
+      <a href="/generate" class="text-blue-600 hover:underline">Powrót do planera</a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6 max-w-3xl mx-auto">
+      <div class="mb-4">
+        <label for="note_summary" class="block text-sm font-medium mb-1"> Tytuł notatki </label>
+        <input type="text" id="note_summary" class="w-full p-2 border rounded-md" value="Lokalna kuchnia" />
+      </div>
+
+      <div class="mb-6">
+        <label for="note_text" class="block text-sm font-medium mb-1"> Treść notatki </label>
+        <textarea id="note_text" rows="12" class="w-full p-2 border rounded-md"
+          >Lubię lokalną kuchnię, chętnie próbuję regionalnych specjałów. Unikam fastfoodów w podróży. Preferuję: -
+          Restauracje polecane przez miejscowych - Targi żywności i lokalne markety - Tradycyjne dania z regionu Chętnie
+          uczestniczę w warsztatach kulinarnych, jeśli są dostępne.</textarea
+        >
+      </div>
+
+      <div class="flex justify-between">
+        <button class="text-red-600 border border-red-600 px-4 py-2 rounded-md hover:bg-red-50 transition">
+          Usuń notatkę
+        </button>
+        <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
+          Zapisz zmiany
+        </button>
+      </div>
+    </div>
+  </div>
+</Layout>

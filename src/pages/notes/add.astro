@@ -1,0 +1,40 @@
+---
+import Layout from "../../layouts/Layout.astro";
+---
+
+<Layout title="Dodaj notatkę - Trip Planner">
+  <div class="container mx-auto py-6">
+    <div class="flex justify-between items-center p-4 border-b mb-6">
+      <h1 class="text-xl font-bold">Dodaj nową notatkę</h1>
+      <a href="/generate" class="text-blue-600 hover:underline">Powrót do planera</a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6 max-w-3xl mx-auto">
+      <div class="mb-4">
+        <label for="note_summary" class="block text-sm font-medium mb-1"> Tytuł notatki </label>
+        <input
+          type="text"
+          id="note_summary"
+          class="w-full p-2 border rounded-md"
+          placeholder="Wprowadź krótki tytuł notatki"
+        />
+      </div>
+
+      <div class="mb-6">
+        <label for="note_text" class="block text-sm font-medium mb-1"> Treść notatki </label>
+        <textarea
+          id="note_text"
+          rows="10"
+          class="w-full p-2 border rounded-md"
+          placeholder="Wprowadź swoje preferencje podróżnicze, miejsca które chciałbyś odwiedzić, itp."></textarea>
+        <p class="text-xs text-gray-500 mt-1">Te notatki zostaną wykorzystane przy generowaniu planu podróży.</p>
+      </div>
+
+      <div class="flex justify-end">
+        <a href="/generate" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
+          Zapisz notatkę
+        </a>
+      </div>
+    </div>
+  </div>
+</Layout>
