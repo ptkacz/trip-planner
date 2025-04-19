@@ -151,7 +151,7 @@ const GenerateTripView: React.FC = () => {
   };
 
   // Obsługa generowania planu
-  const handleGeneratePlan = () => {
+  const handleGeneratePlan = async () => {
     if (!validateForm()) {
       return;
     }
@@ -159,18 +159,34 @@ const GenerateTripView: React.FC = () => {
     setIsLoading(true);
     setError("");
 
-    // Symulacja wywołania API z timeoutem
-    setTimeout(() => {
-      try {
-        // W rzeczywistości wysłalibyśmy tutaj żądanie do API
-        setGeneratedPlan(MOCK_PLAN);
-        setIsLoading(false);
-      } catch (err) {
-        console.error("Błąd podczas generowania planu:", err);
-        setError("Wystąpił błąd podczas generowania planu");
-        setIsLoading(false);
+    try {
+      // Wywołanie API poprzez endpoint
+      const response = await fetch("/api/trip/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Błąd podczas generowania planu");
       }
-    }, 1500);
+
+      const responseData = await response.json();
+
+      if (responseData.status === "success" && responseData.data) {
+        setGeneratedPlan(responseData.data);
+      } else {
+        throw new Error("Nieprawidłowy format odpowiedzi z serwera");
+      }
+    } catch (err) {
+      console.error("Błąd podczas generowania planu:", err);
+      setError(err instanceof Error ? err.message : "Wystąpił błąd podczas generowania planu");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
