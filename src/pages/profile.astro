@@ -1,5 +1,16 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { supabaseClient, DEFAULT_USER_ID } from "../db/supabase.client";
+import { ProfileService } from "../lib/services/profileService";
+
+// Pobranie profilu użytkownika
+const profileService = new ProfileService(supabaseClient);
+const userProfile = await profileService.getProfile(DEFAULT_USER_ID);
+
+// Pobranie wartości z profilu lub ustawienie domyślnych wartości pustych
+const travelType = userProfile?.travel_type || "";
+const travelStyle = userProfile?.travel_style || "";
+const mealPreference = userProfile?.meal_preference || "";
 ---
 
 <Layout title="Profil użytkownika - Trip Planner">
@@ -13,47 +24,128 @@ import Layout from "../layouts/Layout.astro";
       <h2 class="text-lg font-semibold mb-4">Dane profilu</h2>
       <p class="text-gray-500 mb-6">Uzupełnij swój profil podróżnika</p>
 
-      <div class="grid gap-4">
+      <form id="profile-form" class="grid gap-4">
         <div>
           <label class="block text-sm font-medium mb-1">Typ podróży</label>
-          <select class="w-full p-2 border rounded-md">
+          <select id="travel-type" name="travel_type" class="w-full p-2 border rounded-md">
             <option value="">Wybierz typ podróży</option>
-            <option value="miasta">Miasta</option>
-            <option value="architektura">Architektura</option>
-            <option value="natura">Natura</option>
-            <option value="plaze">Plaże</option>
-            <option value="gory">Góry</option>
-            <option value="atrakcje">Atrakcje</option>
+            <option value="miasta" selected={travelType === "miasta"}>Miasta</option>
+            <option value="architektura" selected={travelType === "architektura"}>Architektura</option>
+            <option value="natura" selected={travelType === "natura"}>Natura</option>
+            <option value="plaze" selected={travelType === "plaze"}>Plaże</option>
+            <option value="gory" selected={travelType === "gory"}>Góry</option>
+            <option value="atrakcje" selected={travelType === "atrakcje"}>Atrakcje</option>
           </select>
         </div>
 
         <div>
           <label class="block text-sm font-medium mb-1">Styl podróżowania</label>
-          <select class="w-full p-2 border rounded-md">
+          <select id="travel-style" name="travel_style" class="w-full p-2 border rounded-md">
             <option value="">Wybierz styl podróżowania</option>
-            <option value="intensywny">Intensywny</option>
-            <option value="odpoczynek">Odpoczynek</option>
-            <option value="hybryda">Hybryda</option>
+            <option value="intensywny" selected={travelStyle === "intensywny"}>Intensywny</option>
+            <option value="odpoczynek" selected={travelStyle === "odpoczynek"}>Odpoczynek</option>
+            <option value="hybryda" selected={travelStyle === "hybryda"}>Hybryda</option>
           </select>
         </div>
 
         <div>
           <label class="block text-sm font-medium mb-1">Preferencje żywieniowe</label>
-          <select class="w-full p-2 border rounded-md">
+          <select id="meal-preference" name="meal_preference" class="w-full p-2 border rounded-md">
             <option value="">Wybierz preferencje żywieniowe</option>
-            <option value="dania_miesne">Dania mięsne</option>
-            <option value="dania_wegetarianskie">Dania wegetariańskie</option>
-            <option value="owoce_morza">Owoce morza</option>
-            <option value="kuchnia_lokalna">Kuchnia lokalna</option>
+            <option value="dania_miesne" selected={mealPreference === "dania_miesne"}>Dania mięsne</option>
+            <option value="dania_wegetarianskie" selected={mealPreference === "dania_wegetarianskie"}
+              >Dania wegetariańskie</option
+            >
+            <option value="owoce_morza" selected={mealPreference === "owoce_morza"}>Owoce morza</option>
+            <option value="kuchnia_lokalna" selected={mealPreference === "kuchnia_lokalna"}>Kuchnia lokalna</option>
           </select>
         </div>
 
         <div class="flex justify-end mt-6">
-          <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
+          <button
+            id="save-profile"
+            type="submit"
+            class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+          >
             Zapisz profil
           </button>
         </div>
-      </div>
+      </form>
+      <div id="status-message" class="mt-4 text-center hidden"></div>
     </div>
   </div>
 </Layout>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("profile-form");
+    const statusMessage = document.getElementById("status-message");
+
+    if (form) {
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        // Pobranie danych z formularza
+        const travelTypeEl = document.getElementById("travel-type") as HTMLSelectElement;
+        const travelStyleEl = document.getElementById("travel-style") as HTMLSelectElement;
+        const mealPreferenceEl = document.getElementById("meal-preference") as HTMLSelectElement;
+
+        if (travelTypeEl && travelStyleEl && mealPreferenceEl) {
+          const travelType = travelTypeEl.value;
+          const travelStyle = travelStyleEl.value;
+          const mealPreference = mealPreferenceEl.value;
+
+          // Przygotowanie danych do wysłania
+          const profileData = {
+            travel_type: travelType,
+            travel_style: travelStyle,
+            meal_preference: mealPreference,
+          };
+
+          try {
+            // Wysłanie danych do API
+            const response = await fetch("/api/profile", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(profileData),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+              // Wyświetlenie komunikatu o sukcesie
+              if (statusMessage) {
+                statusMessage.textContent = "Profil został pomyślnie zapisany!";
+                statusMessage.className = "mt-4 text-center text-green-600";
+                statusMessage.classList.remove("hidden");
+
+                // Ukrycie komunikatu po 3 sekundach
+                setTimeout(() => {
+                  statusMessage.classList.add("hidden");
+                }, 3000);
+              }
+            } else {
+              // Wyświetlenie komunikatu o błędzie
+              if (statusMessage) {
+                statusMessage.textContent = result.message || "Wystąpił błąd podczas zapisywania profilu.";
+                statusMessage.className = "mt-4 text-center text-red-600";
+                statusMessage.classList.remove("hidden");
+              }
+            }
+          } catch (error) {
+            console.error("Błąd podczas wysyłania danych:", error);
+
+            // Wyświetlenie komunikatu o błędzie
+            if (statusMessage) {
+              statusMessage.textContent = "Wystąpił błąd podczas komunikacji z serwerem.";
+              statusMessage.className = "mt-4 text-center text-red-600";
+              statusMessage.classList.remove("hidden");
+            }
+          }
+        }
+      });
+    }
+  });
+</script>
