@@ -38,7 +38,6 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan }) => {
               alt="Przykładowe zdjęcie z podróży"
               className="w-full h-64 object-cover"
             />
-            <div className="text-xs text-center text-gray-500 mt-1">Przykładowy widok z trasy</div>
           </div>
         </CardContent>
       </Card>
