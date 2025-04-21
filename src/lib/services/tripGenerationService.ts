@@ -54,6 +54,9 @@ export class TripGenerationService {
         plan: planContent,
         notes_used: command.selected_note_ids || [],
         generated_at: new Date().toISOString(),
+        start_country: command.start_country,
+        start_city: command.start_city,
+        max_distance: command.max_distance,
       };
 
       // 3. Zapisanie wyniku generacji w bazie danych

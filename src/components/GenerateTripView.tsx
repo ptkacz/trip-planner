@@ -114,12 +114,27 @@ const GenerateTripView: React.FC = () => {
               "🏠 Powrót do domu\n\n",
             notes_used: [],
             generated_at: new Date().toISOString(),
+            start_country: "",
+            start_city: "",
+            max_distance: 0,
           };
 
           setGeneratedPlan(mockPlan);
           console.log("Ustawiono mockowy plan podróży");
         } else {
-          setGeneratedPlan(responseData.data);
+          const planData = responseData.data;
+
+          // Aktualizujemy stan formularza z danymi z planu
+          if (planData.start_country || planData.start_city || planData.max_distance) {
+            setFormData((prevData) => ({
+              ...prevData,
+              start_country: planData.start_country || "",
+              start_city: planData.start_city || "",
+              max_distance: planData.max_distance || 0,
+            }));
+          }
+
+          setGeneratedPlan(planData);
           console.log("Ustawiono plan podróży z bazy danych");
         }
       } else {

@@ -58,6 +58,9 @@ export class TripPlanService {
       plan: planData.plan || "",
       notes_used: [], // Brak informacji o użytych notatkach w bazie danych
       generated_at: planData.created_at,
+      start_country: planData.start_country || "",
+      start_city: planData.start_city || "",
+      max_distance: planData.max_distance || 0,
     };
   }
 
@@ -66,7 +69,7 @@ export class TripPlanService {
    * @returns Wygenerowany mock planu podróży
    */
   generateMockPlan(): TripPlanDTO {
-    const plan = `🌍 Plan podróży (mockowy):\n\n`;
+    const plan = `🌍 Plan podróży (przykład):\n\n`;
     const mockPlan =
       plan +
       "🗓️ Dzień 1:\n" +
@@ -89,6 +92,9 @@ export class TripPlanService {
       plan: mockPlan,
       notes_used: [],
       generated_at: new Date().toISOString(),
+      start_country: "",
+      start_city: "",
+      max_distance: 0,
     };
   }
 }

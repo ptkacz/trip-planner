@@ -115,4 +115,7 @@ export interface TripPlanDTO {
   plan: string;
   notes_used: string[];
   generated_at: string;
+  start_country?: string;
+  start_city?: string;
+  max_distance?: number;
 }
