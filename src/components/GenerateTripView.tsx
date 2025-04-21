@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { GenerateTripCommand, TripPlanDTO, NoteDTO } from "@/types";
@@ -40,24 +40,6 @@ const MOCK_NOTES: NoteDTO[] = [
   },
 ];
 
-// Przykładowy plan podróży
-const MOCK_PLAN: TripPlanDTO = {
-  plan: `Plan podróży: Warszawa -> Góry Świętokrzyskie
-
-Dzień 1: Wyjazd z Warszawy w kierunku Gór Świętokrzyskich. Po drodze zatrzymaj się w Radomiu, aby zwiedzić Muzeum Wsi Radomskiej - skansen przedstawiający tradycyjną architekturę regionu.
-
-Dzień 2: Zwiedzanie Kielc - stolicy regionu. Koniecznie odwiedź Kadzielnia - rezerwat geologiczny z amfiteatrem, oraz Pałac Biskupów Krakowskich z XVII wieku. Na obiad spróbuj lokalnych specjałów w restauracji "Żurek Świętokrzyski".
-
-Dzień 3: Wycieczka do Św. Krzyża - najwyższego szczytu Gór Świętokrzyskich. Zwiedzanie zabytkowego opactwa i podziwianie panoramy z wieży widokowej. Po południu wypożycz rower i przejedź fragment Wschodniego Szlaku Rowerowego Green Velo.
-
-Dzień 4: Zwiedzanie Jaskini Raj - jednej z najpiękniejszych jaskiń krasowych w Polsce. Po południu odwiedź Park Etnograficzny w Tokarni, prezentujący tradycyjną architekturę regionu.
-
-Dzień 5: Powrót do Warszawy przez Sandomierz - jedno z najstarszych i najpiękniejszych miast Polski. Spacer po starówce, zwiedzanie podziemnej trasy turystycznej i Zamku Królewskiego.`,
-  notes_used: ["1", "2", "3"],
-  generated_at: "2023-10-20T10:30:00Z",
-};
-
-// Główny komponent widoku generowania planu podróży
 const GenerateTripView: React.FC = () => {
   // Stan formularza
   const [formData, setFormData] = useState<GenerateTripCommand>({
@@ -74,56 +56,126 @@ const GenerateTripView: React.FC = () => {
     max_distance?: string;
   }>({});
 
-  // Stan notatek - w rzeczywistej aplikacji pobieralibyśmy je z API
-  const [notes] = useState<NoteDTO[]>(MOCK_NOTES);
-
-  // Stan wyniku generacji
-  const [generatedPlan, setGeneratedPlan] = useState<TripPlanDTO | null>(MOCK_PLAN);
-
-  // Stan ładowania
+  // Stan ładowania podczas generowania planu
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // Stan błędu
+  // Stan ładowania planu z bazy danych
+  const [isLoadingPlan, setIsLoadingPlan] = useState<boolean>(true);
+
+  // Stan komunikatu o błędzie
   const [error, setError] = useState<string>("");
 
-  // Obsługa kliknięcia przycisku profilu
+  // Wygenerowany plan podróży
+  const [generatedPlan, setGeneratedPlan] = useState<TripPlanDTO | null>(null);
+
+  // Stan listy notatek
+  const [notes] = useState<NoteDTO[]>(MOCK_NOTES);
+
+  // Efekt do ładowania planu podróży przy inicjalizacji komponentu
+  useEffect(() => {
+    fetchTripPlan();
+  }, []);
+
+  // Funkcja pobierająca plan podróży z API
+  const fetchTripPlan = async () => {
+    setIsLoadingPlan(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/trip/plan");
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Błąd podczas pobierania planu");
+      }
+
+      const responseData = await response.json();
+
+      if (responseData.status === "success") {
+        if (responseData.data === null) {
+          // Brak planu w bazie - generujemy mocka
+          const mockPlan: TripPlanDTO = {
+            plan:
+              `🌍 Plan podróży (przykład):\n\n` +
+              "🗓️ Dzień 1:\n" +
+              "🏙️ Rozpocznij podróż w mieście startowym\n" +
+              "🏛️ Zwiedzanie lokalnych atrakcji\n" +
+              "🍽️ Obiad w lokalnej restauracji\n" +
+              "🏨 Nocleg w centrum miasta\n\n" +
+              "🗓️ Dzień 2:\n" +
+              "🚗 Wycieczka do pobliskich miejscowości\n" +
+              "🏞️ Zwiedzanie okolicznych atrakcji przyrodniczych\n" +
+              "🍦 Przerwa na lokalny przysmak\n" +
+              "🌆 Powrót do bazy wieczorem\n\n" +
+              "🗓️ Dzień 3:\n" +
+              "🚂 Dalsza podróż do ciekawych miejsc\n" +
+              "🏰 Zwiedzanie zabytków historycznych\n" +
+              "🍷 Kolacja w regionalnej restauracji\n" +
+              "🏠 Powrót do domu\n\n",
+            notes_used: [],
+            generated_at: new Date().toISOString(),
+          };
+
+          setGeneratedPlan(mockPlan);
+          console.log("Ustawiono mockowy plan podróży");
+        } else {
+          setGeneratedPlan(responseData.data);
+          console.log("Ustawiono plan podróży z bazy danych");
+        }
+      } else {
+        throw new Error("Nieprawidłowy format odpowiedzi z serwera");
+      }
+    } catch (err) {
+      console.error("Błąd podczas pobierania planu podróży:", err);
+      setError(err instanceof Error ? err.message : "Wystąpił błąd podczas pobierania planu");
+    } finally {
+      setIsLoadingPlan(false);
+    }
+  };
+
+  // Obsługa zmiany danych formularza
+  const handleFormChange = (updatedFormData: Partial<GenerateTripCommand>) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      ...updatedFormData,
+    }));
+  };
+
+  // Obsługa kliknięcia na profil
   const handleProfileClick = () => {
     window.location.href = "/profile";
   };
 
-  // Obsługa kliknięcia przycisku dodawania notatki
+  // Obsługa dodawania nowej notatki
   const handleAddNoteClick = () => {
     window.location.href = "/notes/add";
   };
 
-  // Obsługa zmiany formularza
-  const handleFormChange = (data: Partial<GenerateTripCommand>) => {
-    setFormData((prev) => ({ ...prev, ...data }));
+  // Obsługa kliknięcia na notatkę
+  const handleNoteClick = (noteId: string) => {
+    // W rzeczywistej aplikacji przekazalibyśmy ID notatki jako parametr URL
+    console.log(`Przekierowuję do widoku notatki o ID: ${noteId}`);
+    window.location.href = `/notes/view?id=${noteId}`;
   };
 
   // Obsługa wyboru notatki
-  const handleNoteSelect = (noteId: string) => {
-    setFormData((prev) => {
-      const selectedIds = prev.selected_note_ids || [];
-      if (selectedIds.includes(noteId)) {
+  const handleNoteSelect = (noteId: string, selected: boolean) => {
+    setFormData((prevData) => {
+      const selectedNoteIds = prevData.selected_note_ids || [];
+      if (selected) {
+        // Dodanie ID notatki, jeśli nie istnieje
         return {
-          ...prev,
-          selected_note_ids: selectedIds.filter((id) => id !== noteId),
+          ...prevData,
+          selected_note_ids: [...selectedNoteIds, noteId].filter((id, index, array) => array.indexOf(id) === index),
         };
       } else {
+        // Usunięcie ID notatki
         return {
-          ...prev,
-          selected_note_ids: [...selectedIds, noteId],
+          ...prevData,
+          selected_note_ids: selectedNoteIds.filter((id) => id !== noteId),
         };
       }
     });
-  };
-
-  // Obsługa kliknięcia notatki
-  const handleNoteClick = (note: NoteDTO) => {
-    // W rzeczywistej aplikacji przekazalibyśmy ID notatki jako parametr URL
-    console.log(`Przekierowuję do widoku notatki o ID: ${note.id}`);
-    window.location.href = "/notes/view";
   };
 
   // Walidacja formularza
@@ -212,8 +264,12 @@ const GenerateTripView: React.FC = () => {
               </Button>
             </div>
 
-            {/* Wyświetlanie planu */}
-            {generatedPlan && <PlanDisplay plan={generatedPlan} />}
+            {/* Wyświetlanie planu lub informacji o ładowaniu */}
+            {isLoadingPlan ? (
+              <div className="mt-6 p-4 text-center text-gray-500">Ładowanie planu podróży...</div>
+            ) : (
+              generatedPlan && <PlanDisplay plan={generatedPlan} />
+            )}
           </CardContent>
         </Card>
 
