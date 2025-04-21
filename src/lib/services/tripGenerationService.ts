@@ -82,16 +82,55 @@ export class TripGenerationService {
         max_distance: command.max_distance,
       };
 
-      const { error } = await this.supabase.from("plans").insert(newPlan);
+      console.log("Próba zapisu planu do bazy danych:", {
+        userId,
+        start_city: command.start_city,
+        start_country: command.start_country,
+      });
+
+      // Najpierw sprawdzamy czy istnieje już plan dla tego użytkownika
+      const { data: existingPlan, error: fetchError } = await this.supabase
+        .from("plans")
+        .select("id")
+        .eq("user_id", userId)
+        .single();
+
+      if (fetchError && fetchError.code !== "PGRST116") {
+        // PGRST116 to "Did not find any rows matching the query"
+        console.error("Błąd podczas sprawdzania istniejącego planu:", {
+          code: fetchError.code,
+          message: fetchError.message,
+          details: fetchError.details,
+          hint: fetchError.hint,
+        });
+        return;
+      }
+
+      let error;
+      if (existingPlan?.id) {
+        // Aktualizujemy istniejący plan
+        console.log("Aktualizacja istniejącego planu dla użytkownika:", userId);
+        const { error: updateError } = await this.supabase.from("plans").update(newPlan).eq("id", existingPlan.id);
+        error = updateError;
+      } else {
+        // Tworzymy nowy plan
+        console.log("Tworzenie nowego planu dla użytkownika:", userId);
+        const { error: insertError } = await this.supabase.from("plans").insert(newPlan);
+        error = insertError;
+      }
 
       if (error) {
-        console.error("Błąd podczas zapisywania planu do bazy danych:", error);
+        console.error("Błąd podczas zapisywania planu do bazy danych:", {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+        });
       } else {
         console.log("Plan podróży został pomyślnie zapisany do bazy danych");
       }
     } catch (saveError) {
       console.error("Wystąpił nieoczekiwany błąd podczas zapisywania planu:", saveError);
-      // Nie rzucamy wyjątku, aby nie przerywać głównego przepływu
     }
   }
 
