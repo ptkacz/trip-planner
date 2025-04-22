@@ -20,14 +20,6 @@ const redirectUrl = "/generate";
       <span class="block sm:inline"></span>
     </div>
 
-    <div
-      id="debug-info"
-      class="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded relative mb-4 overflow-auto hidden"
-    >
-      <h3 class="font-bold">Informacje debugujące:</h3>
-      <pre class="text-xs mt-2"></pre>
-    </div>
-
     <div class="bg-white rounded-lg shadow p-6 max-w-3xl mx-auto">
       <form id="note-form" method="POST">
         <div class="mb-4">
@@ -74,22 +66,6 @@ const redirectUrl = "/generate";
     const submitButton = document.getElementById("submit-button");
     const errorMessage = document.getElementById("error-message");
     const errorMessageText = errorMessage?.querySelector("span");
-    const debugInfo = document.getElementById("debug-info");
-    const debugInfoPre = debugInfo?.querySelector("pre");
-
-    // Pokaż informacje o endpointach (do debugowania)
-    if (debugInfo && debugInfoPre) {
-      debugInfo.classList.remove("hidden");
-      debugInfoPre.textContent = JSON.stringify(
-        {
-          apiEndpoint,
-          redirectUrl,
-          absoluteApiEndpoint: window.location.origin + apiEndpoint,
-        },
-        null,
-        2
-      );
-    }
 
     if (form && submitButton) {
       form.addEventListener("submit", async function (e) {
@@ -129,20 +105,6 @@ const redirectUrl = "/generate";
 
             console.log("Wysyłanie danych do API:", requestData);
 
-            // Aktualizacja informacji debugowania
-            if (debugInfo && debugInfoPre) {
-              debugInfoPre.textContent = JSON.stringify(
-                {
-                  apiEndpoint,
-                  redirectUrl,
-                  absoluteApiEndpoint: window.location.origin + apiEndpoint,
-                  requestData,
-                },
-                null,
-                2
-              );
-            }
-
             // Wysłanie danych do API
             const response = await fetch(apiEndpoint, {
               method: "POST",
@@ -154,26 +116,6 @@ const redirectUrl = "/generate";
 
             const result = await response.json();
             console.log("Odpowiedź z API:", result);
-
-            // Aktualizacja informacji debugowania
-            if (debugInfo && debugInfoPre) {
-              debugInfoPre.textContent = JSON.stringify(
-                {
-                  apiEndpoint,
-                  redirectUrl,
-                  absoluteApiEndpoint: window.location.origin + apiEndpoint,
-                  requestData,
-                  response: {
-                    status: response.status,
-                    ok: response.ok,
-                    statusText: response.statusText,
-                    result,
-                  },
-                },
-                null,
-                2
-              );
-            }
 
             if (response.ok) {
               // Przekierowanie na stronę główną po sukcesie
@@ -193,20 +135,6 @@ const redirectUrl = "/generate";
             }
           } catch (error) {
             console.error("Błąd podczas wysyłania danych:", error);
-
-            // Aktualizacja informacji debugowania
-            if (debugInfo && debugInfoPre) {
-              debugInfoPre.textContent = JSON.stringify(
-                {
-                  apiEndpoint,
-                  redirectUrl,
-                  absoluteApiEndpoint: window.location.origin + apiEndpoint,
-                  error: error.toString(),
-                },
-                null,
-                2
-              );
-            }
 
             // Wyświetlenie komunikatu o błędzie
             if (errorMessage) {
