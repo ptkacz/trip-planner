@@ -65,8 +65,10 @@ export type NoteDTO = Pick<
  */
 export type CreateNoteCommand = Omit<
   Database["public"]["Tables"]["notes"]["Insert"],
-  "id" | "created_at" | "updated_at"
->;
+  "id" | "created_at" | "updated_at" | "user_id"
+> & {
+  user_id?: string;
+};
 
 /**
  * UpdateNoteCommand represents the payload to update an existing note.

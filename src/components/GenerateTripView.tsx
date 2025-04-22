@@ -18,28 +18,6 @@ const ErrorBanner: React.FC<{ message: string }> = ({ message }) => {
   );
 };
 
-// Przykładowe dane notatek
-const MOCK_NOTES: NoteDTO[] = [
-  {
-    id: "1",
-    note_text: "Lubię zwiedzać stare miasta i architekturę. Interesuje mnie historia miejsc, które odwiedzam.",
-    note_summary: "Architektura i historia",
-    created_at: "2023-10-15T12:30:00Z",
-  },
-  {
-    id: "2",
-    note_text: "Preferuję aktywny wypoczynek, górskie wędrówki i sporty wodne. Chętnie wypożyczam rower.",
-    note_summary: "Aktywny wypoczynek",
-    created_at: "2023-10-16T14:45:00Z",
-  },
-  {
-    id: "3",
-    note_text: "Lubię lokalną kuchnię, chętnie próbuję regionalnych specjałów. Unikam fastfoodów w podróży.",
-    note_summary: "Lokalna kuchnia",
-    created_at: "2023-10-17T09:15:00Z",
-  },
-];
-
 const GenerateTripView: React.FC = () => {
   // Stan formularza
   const [formData, setFormData] = useState<GenerateTripCommand>({
@@ -62,19 +40,55 @@ const GenerateTripView: React.FC = () => {
   // Stan ładowania planu z bazy danych
   const [isLoadingPlan, setIsLoadingPlan] = useState<boolean>(true);
 
+  // Stan ładowania notatek
+  const [isLoadingNotes, setIsLoadingNotes] = useState<boolean>(true);
+
   // Stan komunikatu o błędzie
   const [error, setError] = useState<string>("");
+
+  // Stan błędu ładowania notatek
+  const [notesError, setNotesError] = useState<string>("");
 
   // Wygenerowany plan podróży
   const [generatedPlan, setGeneratedPlan] = useState<TripPlanDTO | null>(null);
 
   // Stan listy notatek
-  const [notes] = useState<NoteDTO[]>(MOCK_NOTES);
+  const [notes, setNotes] = useState<NoteDTO[]>([]);
 
-  // Efekt do ładowania planu podróży przy inicjalizacji komponentu
+  // Efekty do ładowania danych przy inicjalizacji komponentu
   useEffect(() => {
     fetchTripPlan();
+    fetchNotes();
   }, []);
+
+  // Funkcja pobierająca notatki z API
+  const fetchNotes = async () => {
+    setIsLoadingNotes(true);
+    setNotesError("");
+
+    try {
+      const response = await fetch("/api/notes");
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Błąd podczas pobierania notatek");
+      }
+
+      const responseData = await response.json();
+
+      if (responseData.status === "success" && Array.isArray(responseData.data)) {
+        setNotes(responseData.data);
+        console.log(`Pobrano ${responseData.data.length} notatek z API`);
+      } else {
+        throw new Error("Nieprawidłowy format odpowiedzi z serwera");
+      }
+    } catch (err) {
+      console.error("Błąd podczas pobierania notatek:", err);
+      setNotesError(err instanceof Error ? err.message : "Wystąpił błąd podczas pobierania notatek");
+    } finally {
+      setIsLoadingNotes(false);
+    }
+  };
 
   // Funkcja pobierająca plan podróży z API
   const fetchTripPlan = async () => {
@@ -168,8 +182,6 @@ const GenerateTripView: React.FC = () => {
 
   // Obsługa kliknięcia na notatkę
   const handleNoteClick = (noteId: string) => {
-    // W rzeczywistej aplikacji przekazalibyśmy ID notatki jako parametr URL
-    console.log(`Przekierowuję do widoku notatki o ID: ${noteId}`);
     window.location.href = `/notes/view?id=${noteId}`;
   };
 
@@ -257,53 +269,81 @@ const GenerateTripView: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto py-6">
-      <TopBar onProfileClick={handleProfileClick} onAddNoteClick={handleAddNoteClick} />
+    <div className="min-h-screen bg-gray-50">
+      <TopBar onProfileClick={handleProfileClick} />
 
-      <div className="grid md:grid-cols-[2fr_1fr] gap-6 mt-6">
-        <Card>
-          <CardContent className="pt-6">
-            <h2 className="text-lg font-semibold mb-4">Generator planu podróży</h2>
+      <main className="container mx-auto py-6 px-4">
+        <section className="mb-8">
+          <h1 className="text-2xl font-bold mb-4">Generator planu podróży</h1>
+          <p className="text-gray-600 mb-6">
+            Uzupełnij dane początkowe i wybierz notatki, które zawierają Twoje preferencje podróżnicze.
+          </p>
 
-            <ErrorBanner message={error} />
+          {error && <ErrorBanner message={error} />}
 
-            {/* Formularz generatora */}
-            <div className="mb-4">
-              <TripGeneratorForm formData={formData} onFormChange={handleFormChange} errors={formErrors} />
+          <div className="grid grid-cols-12 gap-6">
+            {/* Lewa kolumna - formularz i plan podróży */}
+            <div className="col-span-12 lg:col-span-8">
+              {/* Formularz generatora */}
+              <Card className="mb-6">
+                <CardContent className="p-6">
+                  <TripGeneratorForm
+                    formData={formData}
+                    formErrors={formErrors}
+                    isLoading={isLoading}
+                    onFormChange={handleFormChange}
+                    onSubmit={handleGeneratePlan}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Wyświetlanie wygenerowanego planu */}
+              <div>
+                <h2 className="text-xl font-bold mb-4">Twój plan podróży</h2>
+
+                {isLoadingPlan ? (
+                  <div className="text-center py-12 bg-white rounded-lg shadow">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mb-4"></div>
+                    <p className="text-gray-600">Ładowanie planu podróży...</p>
+                  </div>
+                ) : (
+                  <PlanDisplay plan={generatedPlan} />
+                )}
+              </div>
             </div>
 
-            {/* Przycisk generowania */}
-            <div className="flex justify-end">
-              <Button disabled={isLoading} onClick={handleGeneratePlan}>
-                {isLoading ? "Generowanie..." : "Generuj plan podróży"}
-              </Button>
+            {/* Prawa kolumna - notatki */}
+            <div className="col-span-12 lg:col-span-4">
+              <Card className="sticky top-6">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-semibold">Moje notatki</h2>
+                    <Button variant="outline" size="sm" onClick={handleAddNoteClick} className="text-sm">
+                      Dodaj notatkę
+                    </Button>
+                  </div>
+
+                  {notesError && <ErrorBanner message={notesError} />}
+
+                  {isLoadingNotes ? (
+                    <div className="text-center py-4">
+                      <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></div>
+                      <span>Ładowanie notatek...</span>
+                    </div>
+                  ) : (
+                    <NoteList
+                      notes={notes}
+                      selectedNoteIds={formData.selected_note_ids || []}
+                      onNoteSelect={handleNoteSelect}
+                      onNoteClick={handleNoteClick}
+                    />
+                  )}
+                </CardContent>
+              </Card>
             </div>
-
-            {/* Wyświetlanie planu lub informacji o ładowaniu */}
-            {isLoadingPlan ? (
-              <div className="mt-6 p-4 text-center text-gray-500">Ładowanie planu podróży...</div>
-            ) : (
-              generatedPlan && <PlanDisplay plan={generatedPlan} />
-            )}
-          </CardContent>
-        </Card>
-
-        <div>
-          <Card>
-            <CardContent className="pt-6">
-              <h3 className="text-md font-semibold mb-3">Twoje notatki</h3>
-
-              {/* Lista notatek */}
-              <NoteList
-                notes={notes}
-                selectedNoteIds={formData.selected_note_ids || []}
-                onNoteSelect={handleNoteSelect}
-                onNoteClick={handleNoteClick}
-              />
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+          </div>
+        </section>
+      </main>
     </div>
   );
 };

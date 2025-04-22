@@ -1,40 +1,227 @@
 ---
 import Layout from "../../layouts/Layout.astro";
+
+const apiEndpoint = "/api/notes";
+const redirectUrl = "/generate";
 ---
 
 <Layout title="Dodaj notatkę - Trip Planner">
   <div class="container mx-auto py-6">
     <div class="flex justify-between items-center p-4 border-b mb-6">
       <h1 class="text-xl font-bold">Dodaj nową notatkę</h1>
-      <a href="/generate" class="text-blue-600 hover:underline">Powrót do planera</a>
+      <a href={redirectUrl} class="text-blue-600 hover:underline">Powrót do planera</a>
+    </div>
+
+    <div
+      id="error-message"
+      class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 hidden"
+      role="alert"
+    >
+      <span class="block sm:inline"></span>
+    </div>
+
+    <div
+      id="debug-info"
+      class="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded relative mb-4 overflow-auto hidden"
+    >
+      <h3 class="font-bold">Informacje debugujące:</h3>
+      <pre class="text-xs mt-2"></pre>
     </div>
 
     <div class="bg-white rounded-lg shadow p-6 max-w-3xl mx-auto">
-      <div class="mb-4">
-        <label for="note_summary" class="block text-sm font-medium mb-1"> Tytuł notatki </label>
-        <input
-          type="text"
-          id="note_summary"
-          class="w-full p-2 border rounded-md"
-          placeholder="Wprowadź krótki tytuł notatki"
-        />
-      </div>
+      <form id="note-form" method="POST">
+        <div class="mb-4">
+          <label for="note_summary" class="block text-sm font-medium mb-1"> Tytuł notatki </label>
+          <input
+            type="text"
+            id="note_summary"
+            name="note_summary"
+            class="w-full p-2 border rounded-md"
+            placeholder="Wprowadź krótki tytuł notatki"
+            required
+          />
+        </div>
 
-      <div class="mb-6">
-        <label for="note_text" class="block text-sm font-medium mb-1"> Treść notatki </label>
-        <textarea
-          id="note_text"
-          rows="10"
-          class="w-full p-2 border rounded-md"
-          placeholder="Wprowadź swoje preferencje podróżnicze, miejsca które chciałbyś odwiedzić, itp."></textarea>
-        <p class="text-xs text-gray-500 mt-1">Te notatki zostaną wykorzystane przy generowaniu planu podróży.</p>
-      </div>
+        <div class="mb-6">
+          <label for="note_text" class="block text-sm font-medium mb-1"> Treść notatki </label>
+          <textarea
+            id="note_text"
+            name="note_text"
+            rows="10"
+            class="w-full p-2 border rounded-md"
+            placeholder="Wprowadź swoje preferencje podróżnicze, miejsca które chciałbyś odwiedzić, itp."
+            required></textarea>
+          <p class="text-xs text-gray-500 mt-1">Te notatki zostaną wykorzystane przy generowaniu planu podróży.</p>
+        </div>
 
-      <div class="flex justify-end">
-        <a href="/generate" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
-          Zapisz notatkę
-        </a>
-      </div>
+        <div class="flex justify-end">
+          <button
+            type="submit"
+            id="submit-button"
+            class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+          >
+            Zapisz notatkę
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </Layout>
+
+<script define:vars={{ apiEndpoint, redirectUrl }}>
+  document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("note-form");
+    const submitButton = document.getElementById("submit-button");
+    const errorMessage = document.getElementById("error-message");
+    const errorMessageText = errorMessage?.querySelector("span");
+    const debugInfo = document.getElementById("debug-info");
+    const debugInfoPre = debugInfo?.querySelector("pre");
+
+    // Pokaż informacje o endpointach (do debugowania)
+    if (debugInfo && debugInfoPre) {
+      debugInfo.classList.remove("hidden");
+      debugInfoPre.textContent = JSON.stringify(
+        {
+          apiEndpoint,
+          redirectUrl,
+          absoluteApiEndpoint: window.location.origin + apiEndpoint,
+        },
+        null,
+        2
+      );
+    }
+
+    if (form && submitButton) {
+      form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        // Wyłączenie przycisku na czas wysyłania
+        submitButton.disabled = true;
+        submitButton.textContent = "Zapisywanie...";
+
+        // Pobranie danych z formularza
+        const noteSummaryEl = document.getElementById("note_summary");
+        const noteTextEl = document.getElementById("note_text");
+
+        if (noteSummaryEl instanceof HTMLInputElement && noteTextEl instanceof HTMLTextAreaElement) {
+          const note_summary = noteSummaryEl.value.trim();
+          const note_text = noteTextEl.value.trim();
+
+          // Ukrycie komunikatu o błędzie
+          if (errorMessage) errorMessage.classList.add("hidden");
+
+          // Walidacja formularza
+          if (!note_summary || !note_text) {
+            if (errorMessage) {
+              errorMessage.classList.remove("hidden");
+              if (errorMessageText) errorMessageText.textContent = "Brak wymaganych pól formularza";
+            }
+            submitButton.disabled = false;
+            submitButton.textContent = "Zapisz notatkę";
+            return;
+          }
+
+          try {
+            const requestData = {
+              note_text,
+              note_summary,
+            };
+
+            console.log("Wysyłanie danych do API:", requestData);
+
+            // Aktualizacja informacji debugowania
+            if (debugInfo && debugInfoPre) {
+              debugInfoPre.textContent = JSON.stringify(
+                {
+                  apiEndpoint,
+                  redirectUrl,
+                  absoluteApiEndpoint: window.location.origin + apiEndpoint,
+                  requestData,
+                },
+                null,
+                2
+              );
+            }
+
+            // Wysłanie danych do API
+            const response = await fetch(apiEndpoint, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(requestData),
+            });
+
+            const result = await response.json();
+            console.log("Odpowiedź z API:", result);
+
+            // Aktualizacja informacji debugowania
+            if (debugInfo && debugInfoPre) {
+              debugInfoPre.textContent = JSON.stringify(
+                {
+                  apiEndpoint,
+                  redirectUrl,
+                  absoluteApiEndpoint: window.location.origin + apiEndpoint,
+                  requestData,
+                  response: {
+                    status: response.status,
+                    ok: response.ok,
+                    statusText: response.statusText,
+                    result,
+                  },
+                },
+                null,
+                2
+              );
+            }
+
+            if (response.ok) {
+              // Przekierowanie na stronę główną po sukcesie
+              window.location.href = redirectUrl;
+            } else {
+              // Wyświetlenie komunikatu o błędzie
+              if (errorMessage) {
+                errorMessage.classList.remove("hidden");
+                if (errorMessageText) {
+                  errorMessageText.textContent = result.message || "Wystąpił błąd podczas zapisywania notatki";
+                }
+              }
+
+              // Przywrócenie przycisku
+              submitButton.disabled = false;
+              submitButton.textContent = "Zapisz notatkę";
+            }
+          } catch (error) {
+            console.error("Błąd podczas wysyłania danych:", error);
+
+            // Aktualizacja informacji debugowania
+            if (debugInfo && debugInfoPre) {
+              debugInfoPre.textContent = JSON.stringify(
+                {
+                  apiEndpoint,
+                  redirectUrl,
+                  absoluteApiEndpoint: window.location.origin + apiEndpoint,
+                  error: error.toString(),
+                },
+                null,
+                2
+              );
+            }
+
+            // Wyświetlenie komunikatu o błędzie
+            if (errorMessage) {
+              errorMessage.classList.remove("hidden");
+              if (errorMessageText) {
+                errorMessageText.textContent = "Wystąpił błąd podczas komunikacji z serwerem";
+              }
+            }
+
+            // Przywrócenie przycisku
+            submitButton.disabled = false;
+            submitButton.textContent = "Zapisz notatkę";
+          }
+        }
+      });
+    }
+  });
+</script>

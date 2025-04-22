@@ -1,20 +1,29 @@
 import React from "react";
 import type { GenerateTripCommand } from "@/types";
+import { Button } from "@/components/ui/button";
 
 interface TripGeneratorFormProps {
   formData: GenerateTripCommand;
-  onFormChange: (data: Partial<GenerateTripCommand>) => void;
-  errors: {
+  formErrors: {
     start_country?: string;
     start_city?: string;
     max_distance?: string;
   };
+  isLoading: boolean;
+  onFormChange: (data: Partial<GenerateTripCommand>) => void;
+  onSubmit: () => Promise<void>;
 }
 
 /**
  * Formularz do wprowadzania danych potrzebnych do wygenerowania planu podróży
  */
-const TripGeneratorForm: React.FC<TripGeneratorFormProps> = ({ formData, onFormChange, errors }) => {
+const TripGeneratorForm: React.FC<TripGeneratorFormProps> = ({
+  formData,
+  formErrors,
+  isLoading,
+  onFormChange,
+  onSubmit,
+}) => {
   // Obsługa zmiany kraju
   const handleCountryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onFormChange({ start_country: e.target.value });
@@ -40,12 +49,12 @@ const TripGeneratorForm: React.FC<TripGeneratorFormProps> = ({ formData, onFormC
         <input
           type="text"
           id="start_country"
-          className={`w-full p-2 border rounded-md ${errors.start_country ? "border-red-500" : "border-gray-300"}`}
+          className={`w-full p-2 border rounded-md ${formErrors.start_country ? "border-red-500" : "border-gray-300"}`}
           value={formData.start_country}
           onChange={handleCountryChange}
           placeholder="Wpisz kraj początkowy"
         />
-        {errors.start_country && <p className="text-red-500 text-xs mt-1">{errors.start_country}</p>}
+        {formErrors.start_country && <p className="text-red-500 text-xs mt-1">{formErrors.start_country}</p>}
       </div>
 
       <div>
@@ -55,12 +64,12 @@ const TripGeneratorForm: React.FC<TripGeneratorFormProps> = ({ formData, onFormC
         <input
           type="text"
           id="start_city"
-          className={`w-full p-2 border rounded-md ${errors.start_city ? "border-red-500" : "border-gray-300"}`}
+          className={`w-full p-2 border rounded-md ${formErrors.start_city ? "border-red-500" : "border-gray-300"}`}
           value={formData.start_city}
           onChange={handleCityChange}
           placeholder="Wpisz miasto początkowe"
         />
-        {errors.start_city && <p className="text-red-500 text-xs mt-1">{errors.start_city}</p>}
+        {formErrors.start_city && <p className="text-red-500 text-xs mt-1">{formErrors.start_city}</p>}
       </div>
 
       <div>
@@ -70,13 +79,19 @@ const TripGeneratorForm: React.FC<TripGeneratorFormProps> = ({ formData, onFormC
         <input
           type="number"
           id="max_distance"
-          className={`w-full p-2 border rounded-md ${errors.max_distance ? "border-red-500" : "border-gray-300"}`}
+          className={`w-full p-2 border rounded-md ${formErrors.max_distance ? "border-red-500" : "border-gray-300"}`}
           value={formData.max_distance || ""}
           onChange={handleDistanceChange}
           placeholder="Wpisz maksymalną odległość"
           min="0"
         />
-        {errors.max_distance && <p className="text-red-500 text-xs mt-1">{errors.max_distance}</p>}
+        {formErrors.max_distance && <p className="text-red-500 text-xs mt-1">{formErrors.max_distance}</p>}
+      </div>
+
+      <div className="pt-4">
+        <Button onClick={onSubmit} disabled={isLoading} className="w-full">
+          {isLoading ? "Generowanie..." : "Generuj plan podróży"}
+        </Button>
       </div>
     </div>
   );
