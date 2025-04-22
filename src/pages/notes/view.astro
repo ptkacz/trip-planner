@@ -1,5 +1,119 @@
 ---
 import Layout from "../../layouts/Layout.astro";
+import { NoteService } from "../../lib/services/noteService";
+import { DEFAULT_USER_ID, supabaseClient } from "../../db/supabase.client";
+import type { UpdateNoteCommand } from "../../types";
+
+// Pobierz ID notatki z URL
+const noteId = Astro.url.searchParams.get("id");
+let noteData = null;
+let errorMessage = "";
+let debugInfo = null;
+
+// Inicjalizacja serwisu notatek
+console.log("Inicjalizacja NoteService dla widoku notatki, DEFAULT_USER_ID:", DEFAULT_USER_ID);
+const noteService = new NoteService(supabaseClient);
+
+// Obsługa żądania POST (aktualizacja notatki)
+if (Astro.request.method === "POST" && noteId) {
+  console.log("Otrzymano żądanie POST dla notatki ID:", noteId);
+  try {
+    const formData = await Astro.request.formData();
+    const note_summary = formData.get("note_summary")?.toString() || "";
+    const note_text = formData.get("note_text")?.toString() || "";
+    const action = formData.get("action")?.toString();
+
+    console.log("Dane z formularza:", {
+      note_summary,
+      note_text_length: note_text.length,
+      action,
+    });
+
+    // Walidacja danych wejściowych
+    if (!note_summary || !note_text) {
+      errorMessage = "Brak wymaganych pól formularza";
+      throw new Error(errorMessage);
+    }
+
+    if (action === "delete") {
+      // Usuwanie notatki
+      console.log("Próba usunięcia notatki ID:", noteId);
+      const deleted = await noteService.deleteNote(noteId, DEFAULT_USER_ID);
+      if (deleted) {
+        console.log("Notatka została pomyślnie usunięta");
+        return Astro.redirect("/generate");
+      } else {
+        errorMessage = "Nie udało się usunąć notatki";
+        throw new Error(errorMessage);
+      }
+    } else {
+      // Aktualizacja notatki
+      console.log("Próba aktualizacji notatki ID:", noteId);
+      const updateData: UpdateNoteCommand = {
+        note_text,
+        note_summary,
+      };
+      const updatedNote = await noteService.updateNote(noteId, updateData, DEFAULT_USER_ID);
+
+      if (updatedNote) {
+        console.log("Notatka została pomyślnie zaktualizowana:", updatedNote);
+        return Astro.redirect("/generate");
+      } else {
+        errorMessage = "Nie udało się zaktualizować notatki";
+        throw new Error(errorMessage);
+      }
+    }
+  } catch (error) {
+    console.error("Błąd podczas aktualizacji notatki:", error);
+    if (!errorMessage) {
+      errorMessage = error instanceof Error ? error.message : "Wystąpił nieznany błąd";
+    }
+    // Przechowujemy informacje debugujące do wyświetlenia
+    debugInfo = {
+      error: error instanceof Error ? { message: error.message, stack: error.stack } : String(error),
+      defaultUserId: DEFAULT_USER_ID,
+      noteId,
+      hasSupabaseUrl: !!import.meta.env.SUPABASE_URL,
+      hasSupabaseKey: !!import.meta.env.SUPABASE_KEY,
+    };
+  }
+}
+
+// Pobieranie notatki z bazy danych
+if (noteId) {
+  try {
+    console.log("Próba pobrania notatki ID:", noteId);
+    noteData = await noteService.getNote(noteId, DEFAULT_USER_ID);
+    if (!noteData) {
+      errorMessage = "Nie znaleziono notatki o podanym ID";
+      console.error(errorMessage, { noteId, DEFAULT_USER_ID });
+      // Dodatkowe informacje debugujące, jeśli notatka nie istnieje
+      debugInfo = {
+        message: "Nie znaleziono notatki",
+        noteId,
+        defaultUserId: DEFAULT_USER_ID,
+        hasSupabaseUrl: !!import.meta.env.SUPABASE_URL,
+        hasSupabaseKey: !!import.meta.env.SUPABASE_KEY,
+      };
+    } else {
+      console.log("Pobrano notatkę pomyślnie:", { id: noteData.id, summary: noteData.note_summary });
+    }
+  } catch (error) {
+    console.error("Błąd podczas pobierania notatki:", error);
+    errorMessage = error instanceof Error ? error.message : "Wystąpił nieznany błąd";
+    // Przechowujemy informacje debugujące do wyświetlenia
+    debugInfo = {
+      error: error instanceof Error ? { message: error.message, stack: error.stack } : String(error),
+      defaultUserId: DEFAULT_USER_ID,
+      noteId,
+      hasSupabaseUrl: !!import.meta.env.SUPABASE_URL,
+      hasSupabaseKey: !!import.meta.env.SUPABASE_KEY,
+    };
+  }
+} else {
+  errorMessage = "Brak identyfikatora notatki";
+  console.error(errorMessage);
+}
 ---
 
 <Layout title="Edycja notatki - Trip Planner">
@@ -9,29 +123,78 @@ import Layout from "../../layouts/Layout.astro";
       <a href="/generate" class="text-blue-600 hover:underline">Powrót do planera</a>
     </div>
 
-    <div class="bg-white rounded-lg shadow p-6 max-w-3xl mx-auto">
-      <div class="mb-4">
-        <label for="note_summary" class="block text-sm font-medium mb-1"> Tytuł notatki </label>
-        <input type="text" id="note_summary" class="w-full p-2 border rounded-md" value="Lokalna kuchnia" />
-      </div>
+    {
+      errorMessage && (
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+          <span class="block sm:inline">{errorMessage}</span>
+        </div>
+      )
+    }
 
-      <div class="mb-6">
-        <label for="note_text" class="block text-sm font-medium mb-1"> Treść notatki </label>
-        <textarea id="note_text" rows="12" class="w-full p-2 border rounded-md"
-          >Lubię lokalną kuchnię, chętnie próbuję regionalnych specjałów. Unikam fastfoodów w podróży. Preferuję: -
-          Restauracje polecane przez miejscowych - Targi żywności i lokalne markety - Tradycyjne dania z regionu Chętnie
-          uczestniczę w warsztatach kulinarnych, jeśli są dostępne.</textarea
-        >
-      </div>
+    {
+      debugInfo && (
+        <div class="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded relative mb-4 overflow-auto">
+          <h3 class="font-bold">Informacje debugujące:</h3>
+          <pre class="text-xs mt-2">{JSON.stringify(debugInfo, null, 2)}</pre>
+        </div>
+      )
+    }
 
-      <div class="flex justify-between">
-        <button class="text-red-600 border border-red-600 px-4 py-2 rounded-md hover:bg-red-50 transition">
-          Usuń notatkę
-        </button>
-        <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
-          Zapisz zmiany
-        </button>
-      </div>
-    </div>
+    {
+      noteData ? (
+        <div class="bg-white rounded-lg shadow p-6 max-w-3xl mx-auto">
+          <form method="POST">
+            <div class="mb-4">
+              <label for="note_summary" class="block text-sm font-medium mb-1">
+                Tytuł notatki
+              </label>
+              <input
+                type="text"
+                id="note_summary"
+                name="note_summary"
+                class="w-full p-2 border rounded-md"
+                value={noteData.note_summary}
+                required
+              />
+            </div>
+
+            <div class="mb-6">
+              <label for="note_text" class="block text-sm font-medium mb-1">
+                Treść notatki
+              </label>
+              <textarea id="note_text" name="note_text" rows="12" class="w-full p-2 border rounded-md" required>
+                {noteData.note_text}
+              </textarea>
+              <p class="text-xs text-gray-500 mt-1">Te notatki zostaną wykorzystane przy generowaniu planu podróży.</p>
+            </div>
+
+            <div class="flex justify-between">
+              <button
+                type="submit"
+                name="action"
+                value="delete"
+                class="text-red-600 border border-red-600 px-4 py-2 rounded-md hover:bg-red-50 transition"
+              >
+                Usuń notatkę
+              </button>
+              <button
+                type="submit"
+                name="action"
+                value="update"
+                class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+              >
+                Zapisz zmiany
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : (
+        !errorMessage && (
+          <div class="bg-white rounded-lg shadow p-6 max-w-3xl mx-auto text-center text-gray-500">
+            Ładowanie notatki...
+          </div>
+        )
+      )
+    }
   </div>
 </Layout>
