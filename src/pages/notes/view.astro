@@ -143,7 +143,7 @@ if (noteId) {
     {
       noteData ? (
         <div class="bg-white rounded-lg shadow p-6 max-w-3xl mx-auto">
-          <form method="POST">
+          <form method="POST" id="noteForm">
             <div class="mb-4">
               <label for="note_summary" class="block text-sm font-medium mb-1">
                 Tytuł notatki
@@ -170,9 +170,8 @@ if (noteId) {
 
             <div class="flex justify-between">
               <button
-                type="submit"
-                name="action"
-                value="delete"
+                type="button"
+                id="deleteButton"
                 class="text-red-600 border border-red-600 px-4 py-2 rounded-md hover:bg-red-50 transition"
               >
                 Usuń notatkę
@@ -186,6 +185,9 @@ if (noteId) {
                 Zapisz zmiany
               </button>
             </div>
+
+            <!-- Ukryte pole dla akcji usuwania -->
+            <input type="hidden" name="action" id="actionField" value="update" />
           </form>
         </div>
       ) : (
@@ -198,3 +200,25 @@ if (noteId) {
     }
   </div>
 </Layout>
+
+<script define:vars={{ noteData }}>
+  document.addEventListener("DOMContentLoaded", function() {
+    const deleteButton = document.getElementById("deleteButton");
+    const noteForm = document.getElementById("noteForm");
+    const actionField = document.getElementById("actionField");
+
+    if (deleteButton && noteForm && actionField) {
+      deleteButton.addEventListener("click", function() {
+        // Wyświetl okno potwierdzenia usunięcia notatki
+        const confirmMessage = `Czy na pewno chcesz usunąć notatkę "${noteData?.note_summary || 'bez tytułu'}"? Tej operacji nie można cofnąć.`;
+        const confirmed = window.confirm(confirmMessage);
+
+        if (confirmed) {
+          // Użytkownik potwierdził, ustaw akcję i wyślij formularz
+          actionField.value = "delete";
+          noteForm.submit();
+        }
+      });
+    }
+  });
+</script>
