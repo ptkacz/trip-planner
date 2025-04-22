@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "../../db/supabase.client";
-import type { GenerateTripCommand, TripPlanDTO, CreatePlanCommand } from "../../types";
+import type { GenerateTripCommand, TripPlanDTO, CreatePlanCommand, ProfileDTO } from "../../types";
 import { OpenRouterService } from "./openrouter.service";
+import { ProfileService } from "./profileService";
 
 /**
  * Serwis odpowiedzialny za generowanie planu podróży z wykorzystaniem zewnętrznego serwisu AI.
@@ -47,8 +48,12 @@ export class TripGenerationService {
         notesContent = notes?.map((note) => note.note_text) || [];
       }
 
-      // 2. Generowanie planu podróży za pomocą OpenRouter
-      const planContent = await this.generateAIPlan(command, notesContent);
+      // 2. Pobranie profilu użytkownika
+      const profileService = new ProfileService(this.supabase);
+      const userProfile = await profileService.getProfile(userId);
+
+      // 3. Generowanie planu podróży za pomocą OpenRouter
+      const planContent = await this.generateAIPlan(command, notesContent, userProfile);
 
       const tripPlan: TripPlanDTO = {
         plan: planContent,
@@ -59,7 +64,7 @@ export class TripGenerationService {
         max_distance: command.max_distance,
       };
 
-      // 3. Zapisanie wyniku generacji w bazie danych
+      // 4. Zapisanie wyniku generacji w bazie danych
       await this.savePlanToDatabase(userId, command, planContent);
 
       return tripPlan;
@@ -141,9 +146,14 @@ export class TripGenerationService {
    * Generuje plan podróży przy użyciu OpenRouter API.
    * @param command Parametry generowania planu
    * @param notesContent Treść notatek użytkownika
+   * @param userProfile Profil użytkownika
    * @returns Wygenerowany plan podróży
    */
-  private async generateAIPlan(command: GenerateTripCommand, notesContent: string[]): Promise<string> {
+  private async generateAIPlan(
+    command: GenerateTripCommand,
+    notesContent: string[],
+    userProfile: ProfileDTO | null
+  ): Promise<string> {
     const { start_city, start_country, max_distance } = command;
 
     // Przygotowanie promptu dla LLM
@@ -153,6 +163,25 @@ export class TripGenerationService {
     prompt += `miejsc noclegowych, transportu i rekomendacji dotyczących lokalnych potraw. `;
     prompt += `Używaj różnorodnych emoji związanych z podróżowaniem przy każdym punkcie planu (np. 🌍, 🏨, 🍽️, 🚆, 🏛️, 🏖️, 🏔️, 🏞️, itp.). `;
     prompt += `Plan powinien być podzielony na dni i zawierać nagłówki z numerami dni. `;
+
+    // Dodanie informacji z profilu użytkownika
+    if (userProfile) {
+      prompt += `\nPlan powinien uwzględniać następujące preferencje użytkownika:\n`;
+
+      if (userProfile.travel_type) {
+        prompt += `- Preferowany typ podróży: ${userProfile.travel_type}\n`;
+      }
+
+      if (userProfile.travel_style) {
+        prompt += `- Preferowany styl podróżowania: ${userProfile.travel_style}\n`;
+      }
+
+      if (userProfile.meal_preference) {
+        prompt += `- Preferencje kulinarne: ${userProfile.meal_preference}\n`;
+      }
+
+      prompt += `\n`;
+    }
 
     // Dodanie informacji z notatek użytkownika
     if (notesContent.length > 0) {
@@ -192,13 +221,13 @@ export class TripGenerationService {
 
       // Fallback do danych mockowych w przypadku błędu
       console.warn("Używanie danych mockowych jako fallback");
-      return this.generateMockPlan(command, notesContent);
+      return this.generateMockPlan(command, notesContent, userProfile);
     } catch (error) {
       console.error("Błąd podczas generowania planu podróży z API:", error);
 
       // Fallback do danych mockowych w przypadku błędu
       console.warn("Używanie danych mockowych jako fallback");
-      return this.generateMockPlan(command, notesContent);
+      return this.generateMockPlan(command, notesContent, userProfile);
     }
   }
 
@@ -206,12 +235,33 @@ export class TripGenerationService {
    * Generuje mock planu podróży jako rozwiązanie awaryjne.
    * @param command Parametry generowania planu
    * @param notesContent Treść notatek użytkownika
+   * @param userProfile Profil użytkownika
    * @returns Wygenerowany mock planu podróży
    */
-  private generateMockPlan(command: GenerateTripCommand, notesContent: string[]): string {
+  private generateMockPlan(
+    command: GenerateTripCommand,
+    notesContent: string[],
+    userProfile: ProfileDTO | null = null
+  ): string {
     const { start_city, start_country, max_distance } = command;
 
     let plan = `🌍 Plan podróży z ${start_city}, ${start_country} (maksymalna odległość: ${max_distance} km):\n\n`;
+
+    // Dodanie informacji o profilu użytkownika
+    if (userProfile) {
+      plan += "👤 Preferencje użytkownika:\n";
+      if (userProfile.travel_type) {
+        plan += `- Typ podróży: ${userProfile.travel_type}\n`;
+      }
+      if (userProfile.travel_style) {
+        plan += `- Styl podróżowania: ${userProfile.travel_style}\n`;
+      }
+      if (userProfile.meal_preference) {
+        plan += `- Preferencje kulinarne: ${userProfile.meal_preference}\n`;
+      }
+      plan += "\n";
+    }
+
     plan += "🗓️ Dzień 1:\n";
     plan += `🏙️ Rozpocznij podróż w ${start_city}\n`;
     plan += "🏛️ Zwiedzanie lokalnych atrakcji\n";
