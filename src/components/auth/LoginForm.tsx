@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Card, CardContent } from "../ui/card";
+import { Label } from "../ui/label";
+import { Alert, AlertDescription } from "../ui/alert";
 import { z } from "zod";
 
 // Schema walidacji
@@ -13,15 +13,20 @@ const loginSchema = z.object({
 });
 
 interface LoginFormProps {
-  onSubmit: (email: string, password: string) => void;
+  onSubmit: (email: string, password: string) => Promise<boolean>;
   isLoading?: boolean;
   error?: string;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading = false, error }) => {
+const LoginForm: React.FC<LoginFormProps> = (props) => {
+  const { isLoading: initialLoading = false, error: initialError } = props;
+  const onSubmit = props.onSubmit;
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [formErrors, setFormErrors] = useState<{ email?: string; password?: string }>({});
+  const [isLoading, setIsLoading] = useState(initialLoading);
+  const [error, setError] = useState(initialError);
 
   const validateForm = (): boolean => {
     try {
@@ -44,10 +49,30 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading = false, erro
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      onSubmit(email, password);
+      setIsLoading(true);
+      setError(undefined);
+
+      try {
+        // Sprawdzam, czy onSubmit jest funkcją
+        if (typeof onSubmit !== "function") {
+          console.error("onSubmit nie jest funkcją:", onSubmit);
+          setError("Problem z funkcją logowania. Skontaktuj się z administratorem.");
+          return;
+        }
+
+        const success = await onSubmit(email, password);
+        if (!success) {
+          setError("Nieprawidłowy email lub hasło");
+        }
+      } catch (err) {
+        console.error("Błąd podczas logowania:", err);
+        setError(err instanceof Error ? err.message : "Wystąpił błąd podczas logowania");
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -62,7 +87,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading = false, erro
               type="email"
               placeholder="twoj@email.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
               disabled={isLoading}
               aria-invalid={!!formErrors.email}
               aria-describedby={formErrors.email ? "email-error" : undefined}
@@ -86,7 +111,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading = false, erro
               type="password"
               placeholder="••••••••"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
               disabled={isLoading}
               aria-invalid={!!formErrors.password}
               aria-describedby={formErrors.password ? "password-error" : undefined}

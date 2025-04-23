@@ -1,10 +1,13 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import LoginForm from "@/components/auth/LoginForm";
 import { Card, CardContent } from "@/components/ui/card";
+import { authService } from "../../lib/services/authService";
 
-// Tutaj będzie logika związana z sesją po implementacji backendu
-const isLoggedIn = false;
+// Sprawdź, czy użytkownik jest zalogowany
+const session = await authService.getSession();
+const isLoggedIn = !!session;
+const userEmail = session?.user?.email;
+const redirectTo = Astro.url.searchParams.get("redirect") || "/";
 ---
 
 <Layout title="Logowanie - TripPlanner">
@@ -15,22 +18,127 @@ const isLoggedIn = false;
       isLoggedIn ? (
         <Card className="w-full max-w-md">
           <CardContent className="p-6 text-center">
-            <p class="mb-4">Jesteś już zalogowany.</p>
-            <a href="/" class="inline-block px-4 py-2 bg-primary text-white rounded-md text-sm font-medium">
-              Przejdź do strony głównej
+            <p class="mb-4">Jesteś już zalogowany jako {userEmail}.</p>
+            <a href={redirectTo} class="inline-block px-4 py-2 bg-primary text-white rounded-md text-sm font-medium">
+              Przejdź dalej
             </a>
           </CardContent>
         </Card>
       ) : (
-        <LoginForm
-          client:load
-          onSubmit={(email, password) => {
-            console.log("Próba logowania", { email, password });
-            // Logika logowania będzie dodana później
-            return false;
-          }}
-        />
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6">
+            <form id="login-form" data-redirect-to={redirectTo} class="space-y-4">
+              <div class="space-y-2">
+                <label for="email" class="text-sm font-medium">
+                  Adres email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  placeholder="twoj@email.com"
+                  class="w-full px-3 py-2 border rounded-md"
+                  required
+                />
+              </div>
+
+              <div class="space-y-2">
+                <div class="flex justify-between">
+                  <label for="password" class="text-sm font-medium">
+                    Hasło
+                  </label>
+                  <a href="/auth/reset-password" class="text-sm text-blue-600 hover:underline">
+                    Zapomniałeś hasła?
+                  </a>
+                </div>
+                <input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  class="w-full px-3 py-2 border rounded-md"
+                  required
+                />
+              </div>
+
+              <div
+                id="error-container"
+                class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+                role="alert"
+              >
+                <span id="error-message" class="block sm:inline" />
+              </div>
+
+              <button type="submit" class="w-full px-4 py-2 bg-primary text-white rounded-md font-medium">
+                Zaloguj się
+              </button>
+
+              <div class="text-center mt-4">
+                <p class="text-sm text-gray-600">
+                  Nie masz jeszcze konta?{" "}
+                  <a href="/auth/register" class="text-blue-600 hover:underline">
+                    Zarejestruj się
+                  </a>
+                </p>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       )
     }
   </div>
 </Layout>
+
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("login-form");
+    if (!form) return;
+
+    const redirectTo = form.getAttribute("data-redirect-to") || "/";
+    const errorContainer = document.getElementById("error-container");
+    const errorMessage = document.getElementById("error-message");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      // Ukryj poprzedni błąd
+      if (errorContainer) errorContainer.classList.add("hidden");
+
+      // Pobierz dane z formularza
+      const emailInput = document.getElementById("email");
+      const passwordInput = document.getElementById("password");
+
+      if (!emailInput || !passwordInput) return;
+
+      const email = emailInput.value;
+      const password = passwordInput.value;
+
+      try {
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Przekieruj użytkownika po udanym logowaniu
+          window.location.href = redirectTo;
+        } else {
+          // Pokaż błąd
+          if (errorContainer && errorMessage) {
+            errorMessage.textContent = "Nieprawidłowy email lub hasło";
+            errorContainer.classList.remove("hidden");
+          }
+        }
+      } catch (error) {
+        console.error("Błąd podczas logowania:", error);
+        if (errorContainer && errorMessage) {
+          errorMessage.textContent = "Wystąpił błąd podczas logowania";
+          errorContainer.classList.remove("hidden");
+        }
+      }
+    });
+  });
+</script>

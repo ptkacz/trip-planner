@@ -1,28 +1,9 @@
 ---
-// Ta strona wylogowuje użytkownika i przekierowuje go na stronę główną
-// Po implementacji backendu wylogowanie będzie obsługiwane przez Supabase Auth
+import { authService } from "../../lib/services/authService";
 
-// Późniejsza implementacja - przekierowanie po wylogowaniu
-export function getServerSideProps() {
-  return {
-    redirect: {
-      destination: "/",
-      permanent: false,
-    },
-  };
-}
+// Wyloguj użytkownika
+await authService.logout();
+
+// Przekieruj na stronę główną
+return Astro.redirect("/");
 ---
-
-<script>
-  // Prosty skrypt przekierowujący na stronę główną window.location.href = "/";
-</script>
-
-<div class="flex justify-center items-center min-h-screen bg-gray-50">
-  <div class="p-4 bg-white rounded shadow text-center">
-    <p>Wylogowywanie...</p>
-    <p>
-      Jeśli nie zostałeś przekierowany automatycznie, <a href="/" class="text-blue-600 hover:underline">kliknij tutaj</a
-      >.
-    </p>
-  </div>
-</div>
