@@ -121,3 +121,49 @@ export interface TripPlanDTO {
   start_city?: string;
   max_distance?: number;
 }
+
+// -------------------------
+// Auth DTO and Command Models
+// -------------------------
+
+/**
+ * UserDTO reprezentuje dane użytkownika przekazywane między backendem a frontendem
+ */
+export interface UserDTO {
+  id: string;
+  email: string;
+  created_at: string;
+}
+
+/**
+ * LoginCommand reprezentuje dane wymagane do logowania
+ */
+export interface LoginCommand {
+  email: string;
+  password: string;
+}
+
+/**
+ * RegisterCommand reprezentuje dane wymagane do rejestracji
+ */
+export interface RegisterCommand {
+  email: string;
+  password: string;
+  password_confirmation: string;
+}
+
+/**
+ * ResetPasswordCommand reprezentuje dane wymagane do resetowania hasła
+ */
+export interface ResetPasswordCommand {
+  email: string;
+}
+
+/**
+ * AuthResponse reprezentuje standardową odpowiedź z endpointów autentykacji
+ */
+export interface AuthResponse {
+  success: boolean;
+  user?: UserDTO;
+  error?: string;
+}
