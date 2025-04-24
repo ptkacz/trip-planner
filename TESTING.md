@@ -13,6 +13,10 @@ src/
     ├── mocks/            # Mocki API i innych zależności
     │   └── handlers.ts   # Handlery MSW dla mockowania API
     └── unit/             # Testy jednostkowe komponentów
+        ├── BackToHomeButton.test.tsx    # Testy dla komponentu przycisku powrotu
+        ├── TripGeneratorForm.test.tsx   # Testy dla formularza generatora podróży
+        ├── noteService.test.ts          # Testy dla serwisu notatek
+        └── tripPlanService.test.ts      # Testy dla serwisu planów podróży
 ```
 
 ### Uruchamianie testów jednostkowych
@@ -30,6 +34,87 @@ npm run test:ui
 # Uruchomienie testów z pomiarem pokrycia
 npm run test:coverage
 ```
+
+### Przykłady pisania testów jednostkowych
+
+#### Testowanie komponentów React
+
+```tsx
+import React from "react";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+import MojKomponent from "@/components/MojKomponent";
+
+describe("MojKomponent", () => {
+  it("renderuje poprawnie", () => {
+    render(<MojKomponent />);
+    expect(screen.getByText(/nazwa/i)).toBeInTheDocument();
+  });
+
+  it("reaguje na kliknięcie", () => {
+    const onClickMock = vi.fn();
+    render(<MojKomponent onClick={onClickMock} />);
+    fireEvent.click(screen.getByRole('button'));
+    expect(onClickMock).toHaveBeenCalled();
+  });
+});
+```
+
+#### Testowanie serwisów
+
+```typescript
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { MojSerwis } from "@/lib/services/mojSerwis";
+
+// Mock dla zależności
+const mockZaleznosc = {
+  metoda: vi.fn(),
+};
+
+describe("MojSerwis", () => {
+  let serwis: MojSerwis;
+  
+  beforeEach(() => {
+    vi.resetAllMocks();
+    serwis = new MojSerwis(mockZaleznosc);
+  });
+
+  it("zwraca oczekiwany rezultat", async () => {
+    mockZaleznosc.metoda.mockResolvedValue({ data: "wynik" });
+    const result = await serwis.mojaMetoda();
+    expect(result).toEqual("wynik");
+  });
+
+  it("obsługuje błędy", async () => {
+    mockZaleznosc.metoda.mockRejectedValue(new Error("błąd"));
+    const result = await serwis.mojaMetoda();
+    expect(result).toBeNull();
+  });
+});
+```
+
+### Zaimplementowane testy jednostkowe
+
+W ramach testów jednostkowych pokryto następujące kluczowe funkcjonalności:
+
+1. **TripGeneratorForm** - testy formularza generatora podróży sprawdzające:
+   - Poprawne renderowanie wszystkich pól formularza
+   - Obsługę zmiany wartości pól formularza
+   - Obsługę błędów walidacji
+   - Wyświetlanie tekstu "Generowanie..." podczas ładowania
+   - Stylowanie pól z błędami (dodawanie klasy border-red-500)
+
+2. **TripPlanService** - testy serwisu planów podróży sprawdzające:
+   - Pobieranie planów podróży z bazy danych
+   - Obsługę błędów podczas pobierania planu
+   - Zachowanie gdy nie znaleziono planu dla użytkownika
+   - Generowanie mockowego planu podróży
+
+3. **NoteService** - testy serwisu notatek sprawdzające:
+   - Pobieranie wszystkich notatek użytkownika
+   - Pobieranie pojedynczych notatek na podstawie ID
+   - Tworzenie nowych notatek
+   - Usuwanie notatek i obsługę błędów
 
 ## Testy E2E (Playwright)
 
@@ -86,6 +171,10 @@ npm run test:lint
 - Testuj komponenty w izolacji, mockując zależności
 - Korzystaj z MSW do mockowania zapytań API
 - Unikaj testowania implementacji, skupiaj się na testowaniu zachowania
+- Resetuj mocki przed każdym testem używając `vi.resetAllMocks()` w `beforeEach`
+- Testuj przypadki brzegowe i obsługę błędów
+- Weryfikuj zarówno poprawne działanie funkcji jak i obsługę wyjątków
+- Używaj snapshotów ostrożnie - tylko dla stabilnych części interfejsu
 
 ### Testy E2E
 
