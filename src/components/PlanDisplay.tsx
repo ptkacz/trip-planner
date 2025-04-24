@@ -24,6 +24,33 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, hideTimestamp = false }
     );
   }
 
+  // Funkcja do formatowania tekstu z gwiazdkami
+  const formatTextWithAsterisks = (text: string) => {
+    // Najpierw znajdujemy tekst między gwiazdkami i formatujemy go
+    const parts = text.split(/(\*[^*]+\*)/);
+    const formattedParts = parts.map((part, index) => {
+      if (part.startsWith("*") && part.endsWith("*")) {
+        // Usuń gwiazdki i zastosuj pogrubienie
+        return <strong key={index}>{part.slice(1, -1)}</strong>;
+      }
+      // Usuń pozostałe gwiazdki z tekstu
+      return part.replace(/\*/g, "");
+    });
+    return formattedParts;
+  };
+
+  // Funkcja do formatowania całej linii
+  const formatLine = (line: string) => {
+    // Sprawdź czy linia zaczyna się od #
+    const hashMatch = line.match(/^#+/);
+    if (hashMatch) {
+      const hashCount = hashMatch[0].length;
+      const textContent = line.slice(hashCount).trim();
+      return <p className="font-bold mb-4">{formatTextWithAsterisks(textContent)}</p>;
+    }
+    return <p className="mb-4">{formatTextWithAsterisks(line)}</p>;
+  };
+
   return (
     <Card className="bg-white">
       <CardContent className="p-6">
@@ -37,10 +64,8 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, hideTimestamp = false }
         )}
 
         <div className="whitespace-pre-wrap mb-6 text-center">
-          {plan.plan.split("\n").map((paragraph, idx) => (
-            <p key={idx} className="mb-4">
-              {paragraph}
-            </p>
+          {plan.plan.split("\n").map((line, idx) => (
+            <React.Fragment key={idx}>{formatLine(line)}</React.Fragment>
           ))}
         </div>
 
