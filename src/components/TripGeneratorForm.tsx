@@ -10,7 +10,7 @@ interface TripGeneratorFormProps {
     max_distance?: string;
   };
   isLoading: boolean;
-  onFormChange: (data: Partial<GenerateTripCommand>) => void;
+  onChange: (data: Partial<GenerateTripCommand>) => void;
   onSubmit: () => Promise<void>;
 }
 
@@ -21,23 +21,23 @@ const TripGeneratorForm: React.FC<TripGeneratorFormProps> = ({
   formData,
   formErrors,
   isLoading,
-  onFormChange,
+  onChange,
   onSubmit,
 }) => {
   // Obsługa zmiany kraju
   const handleCountryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onFormChange({ start_country: e.target.value });
+    onChange({ start_country: e.target.value });
   };
 
   // Obsługa zmiany miasta
   const handleCityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onFormChange({ start_city: e.target.value });
+    onChange({ start_city: e.target.value });
   };
 
   // Obsługa zmiany maksymalnej odległości
   const handleDistanceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value ? parseInt(e.target.value, 10) : 0;
-    onFormChange({ max_distance: value });
+    onChange({ max_distance: value });
   };
 
   return (

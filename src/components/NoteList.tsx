@@ -6,12 +6,24 @@ interface NoteListProps {
   selectedNoteIds: string[];
   onNoteSelect: (noteId: string, selected: boolean) => void;
   onNoteClick: (noteId: string) => void;
+  isLoading?: boolean;
 }
 
 /**
  * Lista notatek użytkownika z możliwością wyboru
  */
-const NoteList: React.FC<NoteListProps> = ({ notes, selectedNoteIds, onNoteSelect, onNoteClick }) => {
+const NoteList: React.FC<NoteListProps> = ({
+  notes,
+  selectedNoteIds,
+  onNoteSelect,
+  onNoteClick,
+  isLoading = false,
+}) => {
+  // Jeśli trwa ładowanie, wyświetl komunikat
+  if (isLoading) {
+    return <div className="text-gray-500 text-center p-4">Ładowanie notatek...</div>;
+  }
+
   // Jeśli brak notatek, wyświetl informację
   if (notes.length === 0) {
     return <div className="text-gray-500 text-center p-4">Brak notatek</div>;

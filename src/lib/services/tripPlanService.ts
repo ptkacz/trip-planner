@@ -69,7 +69,7 @@ export class TripPlanService {
    * @returns Wygenerowany mock planu podróży
    */
   generateMockPlan(): TripPlanDTO {
-    const plan = `🌍 Plan podróży (przykład):\n\n`;
+    const plan = `🌍 Plan podróży:\n\n`;
     const mockPlan =
       plan +
       "🗓️ Dzień 1:\n" +

@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 
 interface TopBarProps {
   onProfileClick?: () => void;
-  onAddNoteClick?: () => void;
 }
 
 /**
@@ -13,7 +12,11 @@ interface TopBarProps {
 const TopBar: React.FC<TopBarProps> = ({ onProfileClick }) => {
   return (
     <div className="flex justify-between items-center p-4 border-b">
-      <h1 className="text-xl font-bold">Generator planu podróży</h1>
+      <h1 className="text-xl font-bold">
+        <a href="/" className="hover:opacity-80 transition-opacity">
+          Generator planu podróży
+        </a>
+      </h1>
       <div className="flex gap-2">
         <Button variant="default" size="sm" onClick={onProfileClick} className="font-medium">
           Profil

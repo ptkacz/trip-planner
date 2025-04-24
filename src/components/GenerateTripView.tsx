@@ -19,6 +19,10 @@ const ErrorBanner: React.FC<{ message: string }> = ({ message }) => {
 };
 
 const GenerateTripView: React.FC = () => {
+  // Stan logowania użytkownika
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
+
   // Stan formularza
   const [formData, setFormData] = useState<GenerateTripCommand>({
     start_country: "",
@@ -55,11 +59,31 @@ const GenerateTripView: React.FC = () => {
   // Stan listy notatek
   const [notes, setNotes] = useState<NoteDTO[]>([]);
 
+  // Sprawdzenie stanu logowania
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const response = await fetch("/api/auth/status");
+        const data = await response.json();
+        setIsLoggedIn(data.isLoggedIn);
+      } catch (error) {
+        console.error("Błąd podczas sprawdzania stanu logowania:", error);
+        setIsLoggedIn(false);
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, []);
+
   // Efekty do ładowania danych przy inicjalizacji komponentu
   useEffect(() => {
-    fetchTripPlan();
-    fetchNotes();
-  }, []);
+    if (isLoggedIn && !isCheckingAuth) {
+      fetchTripPlan();
+      fetchNotes();
+    }
+  }, [isLoggedIn, isCheckingAuth]);
 
   // Funkcja pobierająca notatki z API
   const fetchNotes = async () => {
@@ -110,7 +134,7 @@ const GenerateTripView: React.FC = () => {
           // Brak planu w bazie - generujemy mocka
           const mockPlan: TripPlanDTO = {
             plan:
-              `🌍 Plan podróży (przykład):\n\n` +
+              `🌍 Plan podróży:\n\n` +
               "🗓️ Dzień 1:\n" +
               "🏙️ Rozpocznij podróż w mieście startowym\n" +
               "🏛️ Zwiedzanie lokalnych atrakcji\n" +
@@ -272,78 +296,113 @@ const GenerateTripView: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <TopBar onProfileClick={handleProfileClick} />
 
-      <main className="container mx-auto py-6 px-4">
-        <section className="mb-8">
-          <h1 className="text-2xl font-bold mb-4">Generator planu podróży</h1>
-          <p className="text-gray-600 mb-6">
-            Uzupełnij dane początkowe i wybierz notatki, które zawierają Twoje preferencje podróżnicze.
-          </p>
+      <div className="container mx-auto py-6 px-4">
+        <div className="grid grid-cols-12 gap-6">
+          {/* Lewa kolumna - formularz i plan podróży */}
+          <div className="col-span-12 lg:col-span-8">
+            {/* Formularz generatora */}
+            <Card className="mb-6">
+              <CardContent className="p-6">
+                <TripGeneratorForm
+                  formData={formData}
+                  formErrors={formErrors}
+                  isLoading={isLoading}
+                  onChange={handleFormChange}
+                  onSubmit={handleGeneratePlan}
+                />
+              </CardContent>
+            </Card>
 
-          {error && <ErrorBanner message={error} />}
+            {/* Wyświetlanie wygenerowanego planu */}
+            <div>
+              <h2 className="text-xl font-bold mb-4">Twój plan podróży</h2>
 
-          <div className="grid grid-cols-12 gap-6">
-            {/* Lewa kolumna - formularz i plan podróży */}
-            <div className="col-span-12 lg:col-span-8">
-              {/* Formularz generatora */}
-              <Card className="mb-6">
-                <CardContent className="p-6">
-                  <TripGeneratorForm
-                    formData={formData}
-                    formErrors={formErrors}
-                    isLoading={isLoading}
-                    onFormChange={handleFormChange}
-                    onSubmit={handleGeneratePlan}
+              {error && <ErrorBanner message={error} />}
+
+              {isLoadingPlan ? (
+                <div className="text-center py-12 bg-white rounded-lg shadow">
+                  <PlanDisplay
+                    plan={{
+                      plan:
+                        `🌍 Plan podróży:\n\n` +
+                        "🗓️ Dzień 1:\n" +
+                        "🏙️ Rozpocznij podróż w mieście startowym\n" +
+                        "🏛️ Zwiedzanie lokalnych atrakcji\n" +
+                        "🍽️ Obiad w lokalnej restauracji\n" +
+                        "🏨 Nocleg w centrum miasta\n\n" +
+                        "🗓️ Dzień 2:\n" +
+                        "🚗 Wycieczka do pobliskich miejscowości\n" +
+                        "🏞️ Zwiedzanie okolicznych atrakcji przyrodniczych\n" +
+                        "🍦 Przerwa na lokalny przysmak\n" +
+                        "🌆 Powrót do bazy wieczorem\n\n" +
+                        "🗓️ Dzień 3:\n" +
+                        "🚂 Dalsza podróż do ciekawych miejsc\n" +
+                        "🏰 Zwiedzanie zabytków historycznych\n" +
+                        "🍷 Kolacja w regionalnej restauracji\n" +
+                        "🏠 Powrót do domu\n\n",
+                      notes_used: [],
+                      generated_at: new Date().toISOString(),
+                      start_country: "",
+                      start_city: "",
+                      max_distance: 0,
+                    }}
                   />
-                </CardContent>
-              </Card>
-
-              {/* Wyświetlanie wygenerowanego planu */}
-              <div>
-                <h2 className="text-xl font-bold mb-4">Twój plan podróży</h2>
-
-                {isLoadingPlan ? (
-                  <div className="text-center py-12 bg-white rounded-lg shadow">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mb-4"></div>
-                    <p className="text-gray-600">Ładowanie planu podróży...</p>
-                  </div>
-                ) : (
-                  <PlanDisplay plan={generatedPlan} />
-                )}
-              </div>
-            </div>
-
-            {/* Prawa kolumna - notatki */}
-            <div className="col-span-12 lg:col-span-4">
-              <Card className="sticky top-6">
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-semibold">Moje notatki</h2>
-                    <Button variant="outline" size="sm" onClick={handleAddNoteClick} className="text-sm">
-                      Dodaj notatkę
-                    </Button>
-                  </div>
-
-                  {notesError && <ErrorBanner message={notesError} />}
-
-                  {isLoadingNotes ? (
-                    <div className="text-center py-4">
-                      <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></div>
-                      <span>Ładowanie notatek...</span>
-                    </div>
-                  ) : (
-                    <NoteList
-                      notes={notes}
-                      selectedNoteIds={formData.selected_note_ids || []}
-                      onNoteSelect={handleNoteSelect}
-                      onNoteClick={handleNoteClick}
-                    />
-                  )}
-                </CardContent>
-              </Card>
+                </div>
+              ) : (
+                <PlanDisplay plan={generatedPlan} />
+              )}
             </div>
           </div>
-        </section>
-      </main>
+
+          {/* Prawa kolumna - notatki */}
+          <div className="col-span-12 lg:col-span-4">
+            <Card className="sticky top-6">
+              <CardContent className="p-6">
+                {isCheckingAuth ? (
+                  <div className="text-center py-4">
+                    <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></div>
+                    <span>Ładowanie...</span>
+                  </div>
+                ) : isLoggedIn ? (
+                  <>
+                    <div className="flex justify-between items-center mb-4">
+                      <h2 className="text-lg font-semibold">Moje notatki</h2>
+                      <Button variant="outline" size="sm" onClick={handleAddNoteClick} className="text-sm">
+                        Dodaj notatkę
+                      </Button>
+                    </div>
+
+                    {notesError && <ErrorBanner message={notesError} />}
+
+                    <NoteList
+                      notes={notes}
+                      isLoading={isLoadingNotes}
+                      onNoteClick={handleNoteClick}
+                      onNoteSelect={handleNoteSelect}
+                      selectedNoteIds={formData.selected_note_ids || []}
+                    />
+                  </>
+                ) : (
+                  <div className="text-center py-4">
+                    <h2 className="text-lg font-semibold mb-2">Notatki podróżnicze</h2>
+                    <p className="text-gray-600 mb-4">
+                      Zaloguj się, aby korzystać ze wszystkich funkcjonalności serwisu.
+                    </p>
+                    <div className="flex gap-2 justify-center">
+                      <Button asChild variant="default" size="sm">
+                        <a href="/auth/login">Logowanie</a>
+                      </Button>
+                      <Button asChild variant="outline" size="sm">
+                        <a href="/auth/register">Rejestracja</a>
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
