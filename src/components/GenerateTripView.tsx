@@ -22,6 +22,7 @@ const GenerateTripView: React.FC = () => {
   // Stan logowania użytkownika
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
+  const [userEmail, setUserEmail] = useState<string>("");
 
   // Stan formularza
   const [formData, setFormData] = useState<GenerateTripCommand>({
@@ -66,9 +67,11 @@ const GenerateTripView: React.FC = () => {
         const response = await fetch("/api/auth/status");
         const data = await response.json();
         setIsLoggedIn(data.isLoggedIn);
+        setUserEmail(data.user?.email || "");
       } catch (error) {
         console.error("Błąd podczas sprawdzania stanu logowania:", error);
         setIsLoggedIn(false);
+        setUserEmail("");
       } finally {
         setIsCheckingAuth(false);
       }
@@ -294,7 +297,7 @@ const GenerateTripView: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <TopBar onProfileClick={handleProfileClick} />
+      <TopBar onProfileClick={handleProfileClick} userEmail={userEmail} />
 
       <div className="container mx-auto py-6 px-4">
         <div className="grid grid-cols-12 gap-6">
