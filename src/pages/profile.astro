@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import { supabaseClient, DEFAULT_USER_ID } from "../db/supabase.client";
 import { ProfileService } from "../lib/services/profileService";
+import BackToHomeButton from "@/components/BackToHomeButton";
 
 // Pobranie profilu użytkownika
 const profileService = new ProfileService(supabaseClient);
@@ -17,7 +18,7 @@ const mealPreference = userProfile?.meal_preference || "";
   <div class="container mx-auto py-6">
     <div class="flex justify-between items-center p-4 border-b mb-6">
       <h1 class="text-xl font-bold">Profil użytkownika</h1>
-      <a href="/generate" class="text-blue-600 hover:underline">Powrót do strony głównej</a>
+      <BackToHomeButton href="/generate" client:load />
     </div>
 
     <div class="bg-white rounded-lg shadow p-6 max-w-3xl mx-auto">
