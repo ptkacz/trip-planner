@@ -6,17 +6,7 @@ import TopBar from "./TopBar";
 import TripGeneratorForm from "./TripGeneratorForm";
 import NoteList from "./NoteList";
 import PlanDisplay from "./PlanDisplay";
-
-// Komponent wyświetlający komunikaty o błędach
-const ErrorBanner: React.FC<{ message: string }> = ({ message }) => {
-  if (!message) return null;
-
-  return (
-    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-      <span className="block sm:inline">{message}</span>
-    </div>
-  );
-};
+import ErrorBanner from "./ErrorBanner";
 
 const GenerateTripView: React.FC = () => {
   // Stan logowania użytkownika
@@ -298,7 +288,7 @@ const GenerateTripView: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50" data-test-id="generate-trip-view">
       <TopBar onProfileClick={handleProfileClick} userEmail={userEmail} />
 
       <div className="container mx-auto py-6 px-4">
@@ -306,7 +296,7 @@ const GenerateTripView: React.FC = () => {
           {/* Lewa kolumna - formularz i plan podróży */}
           <div className="col-span-12 lg:col-span-8">
             {/* Formularz generatora */}
-            <Card className="mb-6">
+            <Card className="mb-6" data-test-id="trip-generator-card">
               <CardContent className="p-6">
                 <TripGeneratorForm
                   formData={formData}
@@ -319,7 +309,7 @@ const GenerateTripView: React.FC = () => {
             </Card>
 
             {/* Wyświetlanie wygenerowanego planu */}
-            <div>
+            <div data-test-id="trip-plan-container">
               <h2 className="text-xl font-bold mb-4">Twój plan podróży</h2>
 
               {error && <ErrorBanner message={error} />}

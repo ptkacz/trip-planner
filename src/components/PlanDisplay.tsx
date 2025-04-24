@@ -13,7 +13,7 @@ interface PlanDisplayProps {
 const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, hideTimestamp = false }) => {
   if (!plan) {
     return (
-      <Card className="bg-white">
+      <Card className="bg-white" data-test-id="empty-plan-display">
         <CardContent className="p-6 text-center">
           <p className="text-gray-500">Nie wygenerowano jeszcze planu podróży.</p>
           <p className="text-gray-500 text-sm mt-2">
@@ -52,10 +52,10 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, hideTimestamp = false }
   };
 
   return (
-    <Card className="bg-white">
+    <Card className="bg-white" data-test-id="plan-display">
       <CardContent className="p-6">
         {!hideTimestamp && (
-          <div className="flex justify-between mb-4">
+          <div className="flex justify-between mb-4" data-test-id="plan-metadata">
             <div className="text-sm text-gray-500">Wygenerowano: {new Date(plan.generated_at).toLocaleString()}</div>
             {plan.notes_used.length > 0 && (
               <div className="text-xs text-gray-500">Wykorzystane notatki: {plan.notes_used.length}</div>
@@ -63,14 +63,14 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, hideTimestamp = false }
           </div>
         )}
 
-        <div className="whitespace-pre-wrap mb-6 text-center">
+        <div className="whitespace-pre-wrap mb-6 text-center" data-test-id="plan-content">
           {plan.plan.split("\n").map((line, idx) => (
             <React.Fragment key={idx}>{formatLine(line)}</React.Fragment>
           ))}
         </div>
 
         {/* Przykładowe zdjęcie */}
-        <div className="mt-4 rounded-md overflow-hidden">
+        <div className="mt-4 rounded-md overflow-hidden" data-test-id="plan-image">
           <img
             src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=2070"
             alt="Przykładowe zdjęcie z podróży"

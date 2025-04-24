@@ -41,7 +41,7 @@ const TripGeneratorForm: React.FC<TripGeneratorFormProps> = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-test-id="trip-generator-form">
       <div>
         <label htmlFor="start_country" className="block text-sm font-medium mb-1">
           Kraj początkowy
@@ -49,12 +49,17 @@ const TripGeneratorForm: React.FC<TripGeneratorFormProps> = ({
         <input
           type="text"
           id="start_country"
+          data-test-id="start-country-input"
           className={`w-full p-2 border rounded-md ${formErrors.start_country ? "border-red-500" : "border-gray-300"}`}
           value={formData.start_country}
           onChange={handleCountryChange}
           placeholder="Wpisz kraj początkowy"
         />
-        {formErrors.start_country && <p className="text-red-500 text-xs mt-1">{formErrors.start_country}</p>}
+        {formErrors.start_country && (
+          <p className="text-red-500 text-xs mt-1" data-test-id="start-country-error">
+            {formErrors.start_country}
+          </p>
+        )}
       </div>
 
       <div>
@@ -64,12 +69,17 @@ const TripGeneratorForm: React.FC<TripGeneratorFormProps> = ({
         <input
           type="text"
           id="start_city"
+          data-test-id="start-city-input"
           className={`w-full p-2 border rounded-md ${formErrors.start_city ? "border-red-500" : "border-gray-300"}`}
           value={formData.start_city}
           onChange={handleCityChange}
           placeholder="Wpisz miasto początkowe"
         />
-        {formErrors.start_city && <p className="text-red-500 text-xs mt-1">{formErrors.start_city}</p>}
+        {formErrors.start_city && (
+          <p className="text-red-500 text-xs mt-1" data-test-id="start-city-error">
+            {formErrors.start_city}
+          </p>
+        )}
       </div>
 
       <div>
@@ -79,17 +89,22 @@ const TripGeneratorForm: React.FC<TripGeneratorFormProps> = ({
         <input
           type="number"
           id="max_distance"
+          data-test-id="max-distance-input"
           className={`w-full p-2 border rounded-md ${formErrors.max_distance ? "border-red-500" : "border-gray-300"}`}
           value={formData.max_distance || ""}
           onChange={handleDistanceChange}
           placeholder="Wpisz maksymalną odległość"
           min="0"
         />
-        {formErrors.max_distance && <p className="text-red-500 text-xs mt-1">{formErrors.max_distance}</p>}
+        {formErrors.max_distance && (
+          <p className="text-red-500 text-xs mt-1" data-test-id="max-distance-error">
+            {formErrors.max_distance}
+          </p>
+        )}
       </div>
 
       <div className="pt-4">
-        <Button onClick={onSubmit} disabled={isLoading} className="w-full">
+        <Button onClick={onSubmit} disabled={isLoading} className="w-full" data-test-id="generate-trip-button">
           {isLoading ? "Generowanie..." : "Generuj plan podróży"}
         </Button>
       </div>
