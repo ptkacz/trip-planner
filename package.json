@@ -15,7 +15,8 @@
     "test:e2e": "playwright test",
     "test:e2e:system": "PLAYWRIGHT_CHROME_EXECUTABLE_PATH=$(which chromium) playwright test",
     "test:install-browsers": "playwright install chromium",
-    "test:all": "npm run test && npm run test:e2e:system"
+    "test:all": "npm run test && npm run test:e2e:system",
+    "dev:e2e": "npm run astro dev -- --mode test"
   },
   "dependencies": {
     "@astrojs/node": "^9.1.3",
