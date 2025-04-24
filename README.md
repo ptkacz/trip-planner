@@ -21,6 +21,7 @@ TripPlanner (MVP) is an AI-powered trip planning application that simplifies the
 - **Backend:** Supabase (PostgreSQL)
 - **AI Integration:** Communication with various AI models through Openrouter.ai
 - **CI/CD & Hosting:** GitHub Actions for CI/CD pipelines and DigitalOcean for hosting via Docker
+- **Testing:** Vitest for unit/integration tests, React Testing Library for component testing, Playwright for E2E tests
 
 ## Getting Started Locally
 1. **Clone the Repository:**
