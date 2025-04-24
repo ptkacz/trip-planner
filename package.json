@@ -9,7 +9,13 @@
     "astro": "astro",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:system": "PLAYWRIGHT_CHROME_EXECUTABLE_PATH=$(which chromium) playwright test",
+    "test:install-browsers": "playwright install chromium",
+    "test:all": "npm run test && npm run test:e2e:system"
   },
   "dependencies": {
     "@astrojs/node": "^9.1.3",
@@ -19,14 +25,14 @@
     "@radix-ui/react-slot": "^1.2.0",
     "@supabase/supabase-js": "^2.49.4",
     "@tailwindcss/vite": "4.0.17",
-    "@types/react": "19.0.12",
-    "@types/react-dom": "19.0.4",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
     "astro": "5.5.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.487.0",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "tailwind-merge": "^3.1.0",
     "tailwindcss": "4.0.17",
     "tw-animate-css": "^1.2.5"
@@ -34,6 +40,10 @@
   "devDependencies": {
     "@eslint/compat": "1.2.7",
     "@eslint/js": "9.23.0",
+    "@playwright/test": "^1.47.0",
+    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/react": "^14.1.2",
+    "@testing-library/user-event": "^14.5.1",
     "@typescript-eslint/eslint-plugin": "8.28.0",
     "@typescript-eslint/parser": "8.28.0",
     "eslint": "9.23.0",
@@ -46,11 +56,14 @@
     "eslint-plugin-react": "7.37.4",
     "eslint-plugin-react-compiler": "19.0.0-beta-aeaed83-20250323",
     "eslint-plugin-react-hooks": "5.2.0",
+    "happy-dom": "^13.1.4",
     "husky": "9.1.7",
     "lint-staged": "15.5.0",
+    "msw": "^2.2.3",
     "prettier-plugin-astro": "0.14.1",
     "supabase": "^2.20.12",
-    "typescript-eslint": "8.28.0"
+    "typescript-eslint": "8.28.0",
+    "vitest": "^1.3.1"
   },
   "lint-staged": {
     "*.{ts,tsx,astro}": [
