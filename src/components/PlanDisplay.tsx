@@ -4,12 +4,13 @@ import { Card, CardContent } from "@/components/ui/card";
 
 interface PlanDisplayProps {
   plan: TripPlanDTO | null;
+  hideTimestamp?: boolean;
 }
 
 /**
  * Komponent do wyświetlania wygenerowanego planu podróży
  */
-const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan }) => {
+const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, hideTimestamp = false }) => {
   if (!plan) {
     return (
       <Card className="bg-white">
@@ -26,14 +27,16 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan }) => {
   return (
     <Card className="bg-white">
       <CardContent className="p-6">
-        <div className="flex justify-between mb-4">
-          <div className="text-sm text-gray-500">Wygenerowano: {new Date(plan.generated_at).toLocaleString()}</div>
-          {plan.notes_used.length > 0 && (
-            <div className="text-xs text-gray-500">Wykorzystane notatki: {plan.notes_used.length}</div>
-          )}
-        </div>
+        {!hideTimestamp && (
+          <div className="flex justify-between mb-4">
+            <div className="text-sm text-gray-500">Wygenerowano: {new Date(plan.generated_at).toLocaleString()}</div>
+            {plan.notes_used.length > 0 && (
+              <div className="text-xs text-gray-500">Wykorzystane notatki: {plan.notes_used.length}</div>
+            )}
+          </div>
+        )}
 
-        <div className="whitespace-pre-wrap mb-6">
+        <div className="whitespace-pre-wrap mb-6 text-center">
           {plan.plan.split("\n").map((paragraph, idx) => (
             <p key={idx} className="mb-4">
               {paragraph}

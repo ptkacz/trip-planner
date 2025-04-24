@@ -21,13 +21,15 @@ const TopBar: React.FC<TopBarProps> = ({ onProfileClick, userEmail }) => {
       <div className="flex items-center gap-4">
         {userEmail && <span className="text-sm text-gray-600">{userEmail}</span>}
         <div className="flex gap-2">
-          <Button variant="default" size="sm" onClick={onProfileClick} className="font-medium">
-            Profil
-          </Button>
           {userEmail && (
-            <Button variant="outline" size="sm" asChild className="font-medium">
-              <a href="/auth/logout">Wyloguj</a>
-            </Button>
+            <>
+              <Button variant="default" size="sm" onClick={onProfileClick} className="font-medium">
+                Profil
+              </Button>
+              <Button variant="outline" size="sm" asChild className="font-medium">
+                <a href="/auth/logout">Wyloguj</a>
+              </Button>
+            </>
           )}
         </div>
       </div>

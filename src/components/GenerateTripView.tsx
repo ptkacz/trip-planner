@@ -138,21 +138,23 @@ const GenerateTripView: React.FC = () => {
           const mockPlan: TripPlanDTO = {
             plan:
               `🌍 Plan podróży:\n\n` +
-              "🗓️ Dzień 1:\n" +
-              "🏙️ Rozpocznij podróż w mieście startowym\n" +
-              "🏛️ Zwiedzanie lokalnych atrakcji\n" +
-              "🍽️ Obiad w lokalnej restauracji\n" +
-              "🏨 Nocleg w centrum miasta\n\n" +
-              "🗓️ Dzień 2:\n" +
-              "🚗 Wycieczka do pobliskich miejscowości\n" +
-              "🏞️ Zwiedzanie okolicznych atrakcji przyrodniczych\n" +
-              "🍦 Przerwa na lokalny przysmak\n" +
-              "🌆 Powrót do bazy wieczorem\n\n" +
-              "🗓️ Dzień 3:\n" +
-              "🚂 Dalsza podróż do ciekawych miejsc\n" +
-              "🏰 Zwiedzanie zabytków historycznych\n" +
-              "🍷 Kolacja w regionalnej restauracji\n" +
-              "🏠 Powrót do domu\n\n",
+              "🗓️ Dzień 1: Kraków\n" +
+              "🏰 Zwiedzanie Zamku Królewskiego na Wawelu i Katedry\n" +
+              "🏛️ Spacer po Starym Mieście i Rynku Głównym\n" +
+              "🎭 Wizyta w Sukiennicach\n" +
+              "🍽️ Obiad w tradycyjnej restauracji - pierogi i żurek\n" +
+              "🌙 Wieczorny spacer po Kazimierzu\n\n" +
+              "🗓️ Dzień 2: Okolice Krakowa\n" +
+              "⛰️ Wycieczka do Kopalni Soli w Wieliczce\n" +
+              "🏰 Zwiedzanie Zamku w Niepołomicach\n" +
+              "🌳 Spacer po Puszczy Niepołomickiej\n" +
+              "🍖 Regionalna kolacja w karczmie\n\n" +
+              "🗓️ Dzień 3: Zakopane\n" +
+              "🚂 Przejazd do Zakopanego\n" +
+              "🏔️ Wjazd kolejką na Gubałówkę\n" +
+              "🛍️ Spacer po Krupówkach\n" +
+              "🧀 Degustacja oscypków\n" +
+              "🌄 Zachód słońca w górach\n",
             notes_used: [],
             generated_at: new Date().toISOString(),
             start_country: "",
@@ -323,36 +325,37 @@ const GenerateTripView: React.FC = () => {
               {error && <ErrorBanner message={error} />}
 
               {isLoadingPlan ? (
-                <div className="text-center py-12 bg-white rounded-lg shadow">
-                  <PlanDisplay
-                    plan={{
-                      plan:
-                        `🌍 Plan podróży:\n\n` +
-                        "🗓️ Dzień 1:\n" +
-                        "🏙️ Rozpocznij podróż w mieście startowym\n" +
-                        "🏛️ Zwiedzanie lokalnych atrakcji\n" +
-                        "🍽️ Obiad w lokalnej restauracji\n" +
-                        "🏨 Nocleg w centrum miasta\n\n" +
-                        "🗓️ Dzień 2:\n" +
-                        "🚗 Wycieczka do pobliskich miejscowości\n" +
-                        "🏞️ Zwiedzanie okolicznych atrakcji przyrodniczych\n" +
-                        "🍦 Przerwa na lokalny przysmak\n" +
-                        "🌆 Powrót do bazy wieczorem\n\n" +
-                        "🗓️ Dzień 3:\n" +
-                        "🚂 Dalsza podróż do ciekawych miejsc\n" +
-                        "🏰 Zwiedzanie zabytków historycznych\n" +
-                        "🍷 Kolacja w regionalnej restauracji\n" +
-                        "🏠 Powrót do domu\n\n",
-                      notes_used: [],
-                      generated_at: new Date().toISOString(),
-                      start_country: "",
-                      start_city: "",
-                      max_distance: 0,
-                    }}
-                  />
-                </div>
+                <PlanDisplay
+                  plan={{
+                    plan:
+                      `🌍 Plan podróży:\n\n` +
+                      "🗓️ Dzień 1: Kraków\n" +
+                      "🏰 Zwiedzanie Zamku Królewskiego na Wawelu i Katedry\n" +
+                      "🏛️ Spacer po Starym Mieście i Rynku Głównym\n" +
+                      "🎭 Wizyta w Sukiennicach\n" +
+                      "🍽️ Obiad w tradycyjnej restauracji - pierogi i żurek\n" +
+                      "🌙 Wieczorny spacer po Kazimierzu\n\n" +
+                      "🗓️ Dzień 2: Okolice Krakowa\n" +
+                      "⛰️ Wycieczka do Kopalni Soli w Wieliczce\n" +
+                      "🏰 Zwiedzanie Zamku w Niepołomicach\n" +
+                      "🌳 Spacer po Puszczy Niepołomickiej\n" +
+                      "🍖 Regionalna kolacja w karczmie\n\n" +
+                      "🗓️ Dzień 3: Zakopane\n" +
+                      "🚂 Przejazd do Zakopanego\n" +
+                      "🏔️ Wjazd kolejką na Gubałówkę\n" +
+                      "🛍️ Spacer po Krupówkach\n" +
+                      "🧀 Degustacja oscypków\n" +
+                      "🌄 Zachód słońca w górach\n",
+                    notes_used: [],
+                    generated_at: new Date().toISOString(),
+                    start_country: "",
+                    start_city: "",
+                    max_distance: 0,
+                  }}
+                  hideTimestamp={!isLoggedIn}
+                />
               ) : (
-                <PlanDisplay plan={generatedPlan} />
+                <PlanDisplay plan={generatedPlan} hideTimestamp={!isLoggedIn} />
               )}
             </div>
           </div>
