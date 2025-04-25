@@ -2,6 +2,7 @@
 import Layout from "@/layouts/Layout.astro";
 import { Card, CardContent } from "@/components/ui/card";
 import { authService } from "../../lib/services/authService";
+import BackToHomeButton from "@/components/BackToHomeButton";
 
 // Sprawdź, czy użytkownik jest zalogowany
 const session = await authService.getSession();
@@ -12,6 +13,10 @@ const redirectTo = Astro.url.searchParams.get("redirect") || "/";
 
 <Layout title="Logowanie - TripPlanner">
   <div class="container mx-auto py-12 px-4 flex flex-col items-center">
+    <div class="w-full max-w-md mb-6 flex justify-center">
+      <BackToHomeButton href="/" client:load />
+    </div>
+
     <h1 class="text-3xl font-bold mb-8 text-center">Logowanie do TripPlanner</h1>
 
     {
