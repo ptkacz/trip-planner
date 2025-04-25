@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,9 +7,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useZodForm } from "@/lib/hooks/useForm";
 import { resetPasswordSchema } from "@/lib/hooks/useAuth";
 import type { ResetPasswordFormValues } from "@/lib/hooks/useAuth";
+import { authService } from "@/lib/services/authService";
 
 interface PasswordResetFormProps {
-  onSubmit: (email: string) => void;
+  onSubmit?: (email: string) => void;
   isLoading?: boolean;
   error?: string;
   success?: boolean;
@@ -17,18 +18,51 @@ interface PasswordResetFormProps {
 
 const PasswordResetForm: React.FC<PasswordResetFormProps> = ({
   onSubmit,
-  isLoading = false,
-  error,
-  success = false,
+  isLoading: externalIsLoading = false,
+  error: externalError,
+  success: externalSuccess = false,
 }) => {
+  const [internalIsLoading, setInternalIsLoading] = useState(false);
+  const [internalError, setInternalError] = useState<string | undefined>();
+  const [internalSuccess, setInternalSuccess] = useState(false);
+
+  // Używamy wartości z propsów lub stanu wewnętrznego
+  const isLoading = externalIsLoading || internalIsLoading;
+  const error = externalError || internalError;
+  const success = externalSuccess || internalSuccess;
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useZodForm(resetPasswordSchema);
 
-  const onSubmitForm = (data: ResetPasswordFormValues) => {
-    onSubmit(data.email);
+  const onSubmitForm = async (data: ResetPasswordFormValues) => {
+    // Jeśli dostarczono zewnętrzną funkcję onSubmit, używamy jej
+    if (onSubmit) {
+      onSubmit(data.email);
+      return;
+    }
+
+    // W przeciwnym razie używamy wbudowanej logiki
+    try {
+      setInternalIsLoading(true);
+      setInternalError(undefined);
+
+      const result = await authService.resetPassword({ email: data.email });
+
+      if (result.success) {
+        setInternalSuccess(true);
+      } else if (result.error) {
+        setInternalError(result.error);
+      }
+    } catch (error) {
+      setInternalError(
+        error instanceof Error ? error.message : "Wystąpił nieoczekiwany błąd podczas resetowania hasła"
+      );
+    } finally {
+      setInternalIsLoading(false);
+    }
   };
 
   return (
