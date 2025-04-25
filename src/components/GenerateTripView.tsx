@@ -318,32 +318,34 @@ const GenerateTripView: React.FC = () => {
 
               {isLoadingPlan ? (
                 <PlanDisplay
-                  plan={{
-                    plan:
-                      `🌍 Plan podróży:\n\n` +
-                      "🗓️ Dzień 1: Kraków\n" +
-                      "🏰 Zwiedzanie Zamku Królewskiego na Wawelu i Katedry\n" +
-                      "🏛️ Spacer po Starym Mieście i Rynku Głównym\n" +
-                      "🎭 Wizyta w Sukiennicach\n" +
-                      "🍽️ Obiad w tradycyjnej restauracji - pierogi i żurek\n" +
-                      "🌙 Wieczorny spacer po Kazimierzu\n\n" +
-                      "🗓️ Dzień 2: Okolice Krakowa\n" +
-                      "⛰️ Wycieczka do Kopalni Soli w Wieliczce\n" +
-                      "🏰 Zwiedzanie Zamku w Niepołomicach\n" +
-                      "🌳 Spacer po Puszczy Niepołomickiej\n" +
-                      "🍖 Regionalna kolacja w karczmie\n\n" +
-                      "🗓️ Dzień 3: Zakopane\n" +
-                      "🚂 Przejazd do Zakopanego\n" +
-                      "🏔️ Wjazd kolejką na Gubałówkę\n" +
-                      "🛍️ Spacer po Krupówkach\n" +
-                      "🧀 Degustacja oscypków\n" +
-                      "🌄 Zachód słońca w górach\n",
-                    notes_used: [],
-                    generated_at: new Date().toISOString(),
-                    start_country: "",
-                    start_city: "",
-                    max_distance: 0,
-                  }}
+                  plan={
+                    generatedPlan || {
+                      plan:
+                        `🌍 Plan podróży:\n\n` +
+                        "🗓️ Dzień 1: Kraków\n" +
+                        "🏰 Zwiedzanie Zamku Królewskiego na Wawelu i Katedry\n" +
+                        "🏛️ Spacer po Starym Mieście i Rynku Głównym\n" +
+                        "🎭 Wizyta w Sukiennicach\n" +
+                        "🍽️ Obiad w tradycyjnej restauracji - pierogi i żurek\n" +
+                        "🌙 Wieczorny spacer po Kazimierzu\n\n" +
+                        "🗓️ Dzień 2: Okolice Krakowa\n" +
+                        "⛰️ Wycieczka do Kopalni Soli w Wieliczce\n" +
+                        "🏰 Zwiedzanie Zamku w Niepołomicach\n" +
+                        "🌳 Spacer po Puszczy Niepołomickiej\n" +
+                        "🍖 Regionalna kolacja w karczmie\n\n" +
+                        "🗓️ Dzień 3: Zakopane\n" +
+                        "🚂 Przejazd do Zakopanego\n" +
+                        "🏔️ Wjazd kolejką na Gubałówkę\n" +
+                        "🛍️ Spacer po Krupówkach\n" +
+                        "🧀 Degustacja oscypków\n" +
+                        "🌄 Zachód słońca w górach\n",
+                      notes_used: [],
+                      generated_at: new Date().toISOString(),
+                      start_country: "",
+                      start_city: "",
+                      max_distance: 0,
+                    }
+                  }
                   hideTimestamp={!isLoggedIn}
                 />
               ) : (
