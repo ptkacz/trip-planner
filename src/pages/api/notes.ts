@@ -2,15 +2,32 @@ import type { APIRoute } from "astro";
 import { supabaseClient } from "../../db/supabase.client";
 import { NoteService } from "../../lib/services/noteService";
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ locals }) => {
   try {
     console.log("Otrzymano żądanie GET dla endpointu /api/notes");
+
+    // Pobierz ID użytkownika z sesji
+    const userId = locals.userId;
+    if (!userId) {
+      return new Response(
+        JSON.stringify({
+          status: "error",
+          message: "Brak autoryzacji",
+        }),
+        {
+          status: 401,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
 
     // Inicjalizacja serwisu
     const noteService = new NoteService(supabaseClient);
 
     // Pobieranie notatek
-    const notes = await noteService.getAllNotes();
+    const notes = await noteService.getAllNotes(userId);
 
     return new Response(
       JSON.stringify({
@@ -44,9 +61,26 @@ export const GET: APIRoute = async () => {
   }
 };
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   try {
     console.log("Otrzymano żądanie POST dla endpointu /api/notes");
+
+    // Pobierz ID użytkownika z sesji
+    const userId = locals.userId;
+    if (!userId) {
+      return new Response(
+        JSON.stringify({
+          status: "error",
+          message: "Brak autoryzacji",
+        }),
+        {
+          status: 401,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
 
     // Sprawdzamy czy przesłano prawidłowe dane
     let requestData;
@@ -94,12 +128,16 @@ export const POST: APIRoute = async ({ request }) => {
     const noteService = new NoteService(supabaseClient);
     console.log("Serwis notatek zainicjalizowany");
 
-    // Tworzenie nowej notatki - używamy tylko wymaganych pól, user_id zostanie dodany automatycznie w serwisie
+    // Tworzenie nowej notatki - używamy userId z sesji
     console.log("Próba utworzenia notatki z danymi:", { note_text, note_summary });
-    const newNote = await noteService.createNote({
-      note_text,
-      note_summary,
-    });
+    const newNote = await noteService.createNote(
+      {
+        note_text,
+        note_summary,
+      },
+      userId
+    );
+
     console.log("Wynik operacji utworzenia notatki:", newNote);
 
     if (!newNote) {
@@ -107,7 +145,6 @@ export const POST: APIRoute = async ({ request }) => {
       throw new Error("Nie udało się utworzyć notatki");
     }
 
-    console.log("Notatka została utworzona pomyślnie:", newNote);
     return new Response(
       JSON.stringify({
         status: "success",
@@ -129,7 +166,6 @@ export const POST: APIRoute = async ({ request }) => {
         status: "error",
         message: "Wystąpił błąd podczas tworzenia notatki",
         error: error instanceof Error ? error.message : String(error),
-        error_details: JSON.stringify(error),
       }),
       {
         status: 500,

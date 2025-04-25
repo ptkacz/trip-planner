@@ -23,12 +23,14 @@ const registerSchema = z
   });
 
 interface RegisterFormProps {
-  onSubmit: (email: string, password: string, password_confirmation: string) => void;
-  isLoading?: boolean;
   error?: string;
+  redirectUrl?: string;
 }
 
-const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, isLoading = false, error }) => {
+const RegisterForm: React.FC<RegisterFormProps> = ({
+  error: initialError,
+  redirectUrl = "/auth/login?registered=true",
+}) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
@@ -37,6 +39,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, isLoading = false
     password?: string;
     password_confirmation?: string;
   }>({});
+  const [error, setError] = useState(initialError || "");
+  const [isLoading, setIsLoading] = useState(false);
 
   const validateForm = (): boolean => {
     try {
@@ -67,10 +71,40 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, isLoading = false
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      onSubmit(email, password, passwordConfirmation);
+      setIsLoading(true);
+      setError("");
+
+      try {
+        const response = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password,
+            password_confirmation: passwordConfirmation,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Przekierowanie po udanej rejestracji
+          window.location.href = redirectUrl;
+        } else {
+          // Wyświetl błąd
+          setError(data.error || "Wystąpił nieznany błąd podczas rejestracji");
+        }
+      } catch (err) {
+        console.error("Błąd podczas rejestracji:", err);
+        setError(err instanceof Error ? err.message : "Wystąpił błąd podczas rejestracji");
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 

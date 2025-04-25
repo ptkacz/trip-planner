@@ -15,6 +15,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.user = session?.user;
   context.locals.isLoggedIn = !!session;
 
+  // Dodanie user_id do kontekstu - używamy ID z sesji
+  context.locals.userId = session?.user?.id || null;
+
   // Autoryzacja dostępu do chronionych stron
   const isProtectedRoute = context.url.pathname.startsWith("/profile") || context.url.pathname.startsWith("/notes");
 

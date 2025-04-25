@@ -2,9 +2,14 @@
 import Layout from "@/layouts/Layout.astro";
 import RegisterForm from "@/components/auth/RegisterForm";
 import { Card, CardContent } from "@/components/ui/card";
+import { authService } from "@/lib/services/authService";
 
-// Tutaj będzie logika związana z sesją po implementacji backendu
-const isLoggedIn = false;
+// Sprawdź stan autentykacji
+const isLoggedIn = await authService.isLoggedIn();
+
+// Sprawdź, czy mamy parametr błędu w URL
+const url = new URL(Astro.request.url);
+const registrationError = url.searchParams.get("error") || "";
 ---
 
 <Layout title="Rejestracja - TripPlanner">
@@ -22,14 +27,7 @@ const isLoggedIn = false;
           </CardContent>
         </Card>
       ) : (
-        <RegisterForm
-          client:load
-          onSubmit={(email, password, password_confirmation) => {
-            console.log("Próba rejestracji", { email, password, password_confirmation });
-            // Logika rejestracji będzie dodana później
-            return false;
-          }}
-        />
+        <RegisterForm client:load error={registrationError} redirectUrl="/auth/login?registered=true" />
       )
     }
   </div>

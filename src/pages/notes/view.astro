@@ -1,7 +1,7 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import { NoteService } from "../../lib/services/noteService";
-import { DEFAULT_USER_ID, supabaseClient } from "../../db/supabase.client";
+import { supabaseClient } from "../../db/supabase.client";
 import type { UpdateNoteCommand } from "../../types";
 import BackToHomeButton from "@/components/BackToHomeButton";
 
@@ -11,8 +11,14 @@ let noteData = null;
 let errorMessage = "";
 let debugInfo = null;
 
+// Pobierz ID użytkownika z sesji
+const userId = Astro.locals.userId;
+if (!userId) {
+  return Astro.redirect("/auth/login?redirect=" + encodeURIComponent(Astro.url.pathname));
+}
+
 // Inicjalizacja serwisu notatek
-console.log("Inicjalizacja NoteService dla widoku notatki, DEFAULT_USER_ID:", DEFAULT_USER_ID);
+console.log("Inicjalizacja NoteService dla widoku notatki, userId:", userId);
 const noteService = new NoteService(supabaseClient);
 
 // Obsługa żądania POST (aktualizacja notatki)
@@ -39,7 +45,7 @@ if (Astro.request.method === "POST" && noteId) {
     if (action === "delete") {
       // Usuwanie notatki
       console.log("Próba usunięcia notatki ID:", noteId);
-      const deleted = await noteService.deleteNote(noteId, DEFAULT_USER_ID);
+      const deleted = await noteService.deleteNote(noteId, userId);
       if (deleted) {
         console.log("Notatka została pomyślnie usunięta");
         return Astro.redirect("/generate");
@@ -54,7 +60,7 @@ if (Astro.request.method === "POST" && noteId) {
         note_text,
         note_summary,
       };
-      const updatedNote = await noteService.updateNote(noteId, updateData, DEFAULT_USER_ID);
+      const updatedNote = await noteService.updateNote(noteId, updateData, userId);
 
       if (updatedNote) {
         console.log("Notatka została pomyślnie zaktualizowana:", updatedNote);
@@ -65,159 +71,108 @@ if (Astro.request.method === "POST" && noteId) {
       }
     }
   } catch (error) {
-    console.error("Błąd podczas aktualizacji notatki:", error);
-    if (!errorMessage) {
-      errorMessage = error instanceof Error ? error.message : "Wystąpił nieznany błąd";
-    }
-    // Przechowujemy informacje debugujące do wyświetlenia
-    debugInfo = {
-      error: error instanceof Error ? { message: error.message, stack: error.stack } : String(error),
-      defaultUserId: DEFAULT_USER_ID,
-      noteId,
-      hasSupabaseUrl: !!import.meta.env.SUPABASE_URL,
-      hasSupabaseKey: !!import.meta.env.SUPABASE_KEY,
-    };
+    console.error("Błąd podczas przetwarzania formularza:", error);
+    errorMessage = error instanceof Error ? error.message : "Nieznany błąd";
+    debugInfo = error;
   }
 }
 
-// Pobieranie notatki z bazy danych
+// Pobieranie danych notatki
 if (noteId) {
+  console.log("Próba pobrania notatki o ID:", noteId);
   try {
-    console.log("Próba pobrania notatki ID:", noteId);
-    noteData = await noteService.getNote(noteId, DEFAULT_USER_ID);
+    noteData = await noteService.getNote(noteId, userId);
     if (!noteData) {
       errorMessage = "Nie znaleziono notatki o podanym ID";
-      console.error(errorMessage, { noteId, DEFAULT_USER_ID });
-      // Dodatkowe informacje debugujące, jeśli notatka nie istnieje
-      debugInfo = {
-        message: "Nie znaleziono notatki",
-        noteId,
-        defaultUserId: DEFAULT_USER_ID,
-        hasSupabaseUrl: !!import.meta.env.SUPABASE_URL,
-        hasSupabaseKey: !!import.meta.env.SUPABASE_KEY,
-      };
-    } else {
-      console.log("Pobrano notatkę pomyślnie:", { id: noteData.id, summary: noteData.note_summary });
+      console.error(errorMessage);
     }
   } catch (error) {
     console.error("Błąd podczas pobierania notatki:", error);
-    errorMessage = error instanceof Error ? error.message : "Wystąpił nieznany błąd";
-    // Przechowujemy informacje debugujące do wyświetlenia
-    debugInfo = {
-      error: error instanceof Error ? { message: error.message, stack: error.stack } : String(error),
-      defaultUserId: DEFAULT_USER_ID,
-      noteId,
-      hasSupabaseUrl: !!import.meta.env.SUPABASE_URL,
-      hasSupabaseKey: !!import.meta.env.SUPABASE_KEY,
-    };
+    errorMessage = "Wystąpił błąd podczas pobierania notatki";
+    debugInfo = error;
   }
 } else {
-  errorMessage = "Brak identyfikatora notatki";
+  errorMessage = "Nie podano ID notatki";
   console.error(errorMessage);
 }
 ---
 
-<Layout title="Edycja notatki - Trip Planner">
-  <div class="container mx-auto py-6">
-    <div class="flex justify-between items-center p-4 border-b mb-6">
-      <h1 class="text-xl font-bold">Edycja notatki</h1>
-      <BackToHomeButton href="/generate" client:load />
-    </div>
+<Layout title="Edycja notatki - TripPlanner">
+  <div class="container mx-auto py-6 px-4">
+    <BackToHomeButton href="/generate" />
+
+    <h1 class="text-2xl font-bold mb-6">
+      {noteData ? `Edycja notatki: ${noteData.note_summary}` : "Edycja notatki"}
+    </h1>
 
     {
       errorMessage && (
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-          <span class="block sm:inline">{errorMessage}</span>
-        </div>
-      )
-    }
-
-    {
-      debugInfo && (
-        <div class="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded relative mb-4 overflow-auto">
-          <h3 class="font-bold">Informacje debugujące:</h3>
-          <pre class="text-xs mt-2">{JSON.stringify(debugInfo, null, 2)}</pre>
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <strong class="font-bold">Błąd: </strong>
+          <span>{errorMessage}</span>
+          {debugInfo && import.meta.env.DEV && (
+            <pre class="mt-2 text-xs overflow-auto">{JSON.stringify(debugInfo, null, 2)}</pre>
+          )}
         </div>
       )
     }
 
     {
       noteData ? (
-        <div class="bg-white rounded-lg shadow p-6 max-w-3xl mx-auto">
-          <form method="POST" id="noteForm">
-            <div class="mb-4">
-              <label for="note_summary" class="block text-sm font-medium mb-1">
-                Tytuł notatki
-              </label>
-              <input
-                type="text"
-                id="note_summary"
-                name="note_summary"
-                class="w-full p-2 border rounded-md"
-                value={noteData.note_summary}
-                required
-              />
-            </div>
-
-            <div class="mb-6">
-              <label for="note_text" class="block text-sm font-medium mb-1">
-                Treść notatki
-              </label>
-              <textarea id="note_text" name="note_text" rows="12" class="w-full p-2 border rounded-md" required>{noteData.note_text}</textarea>
-              <p class="text-xs text-gray-500 mt-1">Te notatki zostaną wykorzystane przy generowaniu planu podróży.</p>
-            </div>
-
-            <div class="flex justify-between">
-              <button
-                type="button"
-                id="deleteButton"
-                class="text-red-600 border border-red-600 px-4 py-2 rounded-md hover:bg-red-50 transition"
-              >
-                Usuń notatkę
-              </button>
-              <button
-                type="submit"
-                name="action"
-                value="update"
-                class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
-              >
-                Zapisz zmiany
-              </button>
-            </div>
-
-            <!-- Ukryte pole dla akcji usuwania -->
-            <input type="hidden" name="action" id="actionField" value="update" />
-          </form>
-        </div>
-      ) : (
-        !errorMessage && (
-          <div class="bg-white rounded-lg shadow p-6 max-w-3xl mx-auto text-center text-gray-500">
-            Ładowanie notatki...
+        <form method="POST" class="space-y-4">
+          <div>
+            <label for="note_summary" class="block text-sm font-medium mb-1">
+              Tytuł notatki:
+            </label>
+            <input
+              type="text"
+              id="note_summary"
+              name="note_summary"
+              value={noteData.note_summary}
+              class="w-full p-2 border border-gray-300 rounded-md"
+              required
+            />
           </div>
-        )
+
+          <div>
+            <label for="note_text" class="block text-sm font-medium mb-1">
+              Treść notatki:
+            </label>
+            <textarea
+              id="note_text"
+              name="note_text"
+              rows="6"
+              class="w-full p-2 border border-gray-300 rounded-md"
+              required
+            >
+              {noteData.note_text}
+            </textarea>
+          </div>
+
+          <div class="flex justify-between">
+            <button type="submit" class="px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition-colors">
+              Zapisz zmiany
+            </button>
+
+            <button
+              type="submit"
+              name="action"
+              value="delete"
+              class="px-4 py-2 bg-red-500 text-white rounded hover:bg-opacity-90 transition-colors"
+              onclick="return confirm('Czy na pewno chcesz usunąć tę notatkę?')"
+            >
+              Usuń notatkę
+            </button>
+          </div>
+        </form>
+      ) : (
+        <div class="bg-gray-100 p-4 rounded-md">
+          <p>{errorMessage || "Nie udało się załadować notatki"}</p>
+          <a href="/generate" class="text-primary hover:underline mt-2 inline-block">
+            Wróć do listy notatek
+          </a>
+        </div>
       )
     }
   </div>
 </Layout>
-
-<script define:vars={{ noteData }}>
-  document.addEventListener("DOMContentLoaded", function() {
-    const deleteButton = document.getElementById("deleteButton");
-    const noteForm = document.getElementById("noteForm");
-    const actionField = document.getElementById("actionField");
-
-    if (deleteButton && noteForm && actionField) {
-      deleteButton.addEventListener("click", function() {
-        // Wyświetl okno potwierdzenia usunięcia notatki
-        const confirmMessage = `Czy na pewno chcesz usunąć notatkę "${noteData?.note_summary || 'bez tytułu'}"? Tej operacji nie można cofnąć.`;
-        const confirmed = window.confirm(confirmMessage);
-
-        if (confirmed) {
-          // Użytkownik potwierdził, ustaw akcję i wyślij formularz
-          actionField.value = "delete";
-          noteForm.submit();
-        }
-      });
-    }
-  });
-</script>

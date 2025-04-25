@@ -1,5 +1,4 @@
 import type { SupabaseClient } from "../../db/supabase.client";
-import { DEFAULT_USER_ID } from "../../db/supabase.client";
 import type { NoteDTO, CreateNoteCommand, UpdateNoteCommand } from "../../types";
 
 /**
@@ -13,7 +12,12 @@ export class NoteService {
    * @param userId ID użytkownika
    * @returns Lista notatek użytkownika lub pusta tablica w przypadku błędu
    */
-  async getAllNotes(userId: string = DEFAULT_USER_ID): Promise<NoteDTO[]> {
+  async getAllNotes(userId: string): Promise<NoteDTO[]> {
+    if (!userId) {
+      console.error("getAllNotes: Brak ID użytkownika");
+      return [];
+    }
+
     try {
       console.log("Próba pobrania wszystkich notatek dla użytkownika:", userId);
 
@@ -46,7 +50,12 @@ export class NoteService {
    * @param userId ID użytkownika
    * @returns Notatka lub null, jeśli notatka nie istnieje
    */
-  async getNote(noteId: string, userId: string = DEFAULT_USER_ID): Promise<NoteDTO | null> {
+  async getNote(noteId: string, userId: string): Promise<NoteDTO | null> {
+    if (!userId) {
+      console.error("getNote: Brak ID użytkownika");
+      return null;
+    }
+
     try {
       console.log("Próba pobrania notatki o ID:", noteId);
 
@@ -85,7 +94,12 @@ export class NoteService {
    * @param userId ID użytkownika
    * @returns Utworzona notatka lub null w przypadku błędu
    */
-  async createNote(noteData: CreateNoteCommand, userId: string = DEFAULT_USER_ID): Promise<NoteDTO | null> {
+  async createNote(noteData: CreateNoteCommand, userId: string): Promise<NoteDTO | null> {
+    if (!userId) {
+      console.error("createNote: Brak ID użytkownika");
+      return null;
+    }
+
     try {
       console.log("Próba utworzenia nowej notatki dla użytkownika:", userId);
       console.log("Dane notatki:", JSON.stringify(noteData));
@@ -131,11 +145,12 @@ export class NoteService {
    * @param userId ID użytkownika
    * @returns Zaktualizowana notatka lub null w przypadku błędu
    */
-  async updateNote(
-    noteId: string,
-    noteData: UpdateNoteCommand,
-    userId: string = DEFAULT_USER_ID
-  ): Promise<NoteDTO | null> {
+  async updateNote(noteId: string, noteData: UpdateNoteCommand, userId: string): Promise<NoteDTO | null> {
+    if (!userId) {
+      console.error("updateNote: Brak ID użytkownika");
+      return null;
+    }
+
     try {
       console.log("Próba aktualizacji notatki o ID:", noteId);
 
@@ -178,7 +193,12 @@ export class NoteService {
    * @param userId ID użytkownika
    * @returns true jeśli operacja się powiodła, false w przeciwnym razie
    */
-  async deleteNote(noteId: string, userId: string = DEFAULT_USER_ID): Promise<boolean> {
+  async deleteNote(noteId: string, userId: string): Promise<boolean> {
+    if (!userId) {
+      console.error("deleteNote: Brak ID użytkownika");
+      return false;
+    }
+
     try {
       console.log("Próba usunięcia notatki o ID:", noteId);
 

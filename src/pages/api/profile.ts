@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { supabaseClient, DEFAULT_USER_ID } from "../../db/supabase.client";
+import { supabaseClient } from "../../db/supabase.client";
 import { ProfileService } from "../../lib/services/profileService";
 import type { CreateProfileCommand } from "../../types";
 
@@ -7,13 +7,25 @@ import type { CreateProfileCommand } from "../../types";
 export const prerender = false;
 
 // Handler dla metody GET
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ locals }) => {
   try {
+    // Pobierz ID użytkownika z sesji
+    const userId = locals.userId;
+    if (!userId) {
+      return new Response(
+        JSON.stringify({
+          status: "error",
+          message: "Brak autoryzacji",
+        }),
+        { status: 401, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
     // Inicjalizacja serwisu
     const profileService = new ProfileService(supabaseClient);
 
     // Pobranie profilu z bazy danych
-    const profileData = await profileService.getProfile(DEFAULT_USER_ID);
+    const profileData = await profileService.getProfile(userId);
 
     // Zwrócenie odpowiedzi
     return new Response(
@@ -38,8 +50,20 @@ export const GET: APIRoute = async () => {
 };
 
 // Handler dla metody POST
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   try {
+    // Pobierz ID użytkownika z sesji
+    const userId = locals.userId;
+    if (!userId) {
+      return new Response(
+        JSON.stringify({
+          status: "error",
+          message: "Brak autoryzacji",
+        }),
+        { status: 401, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
     // Inicjalizacja serwisu
     const profileService = new ProfileService(supabaseClient);
 
@@ -52,7 +76,7 @@ export const POST: APIRoute = async ({ request }) => {
     };
 
     // Zapisanie profilu użytkownika
-    const savedProfile = await profileService.saveProfile(DEFAULT_USER_ID, profileData);
+    const savedProfile = await profileService.saveProfile(userId, profileData);
 
     // Jeśli nie udało się zapisać profilu, zwracamy błąd
     if (!savedProfile) {
@@ -88,8 +112,20 @@ export const POST: APIRoute = async ({ request }) => {
 };
 
 // Handler dla metody PUT - działa tak samo jak POST, ale zwraca status 200
-export const PUT: APIRoute = async ({ request }) => {
+export const PUT: APIRoute = async ({ request, locals }) => {
   try {
+    // Pobierz ID użytkownika z sesji
+    const userId = locals.userId;
+    if (!userId) {
+      return new Response(
+        JSON.stringify({
+          status: "error",
+          message: "Brak autoryzacji",
+        }),
+        { status: 401, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
     // Inicjalizacja serwisu
     const profileService = new ProfileService(supabaseClient);
 
@@ -102,7 +138,7 @@ export const PUT: APIRoute = async ({ request }) => {
     };
 
     // Zapisanie profilu użytkownika
-    const savedProfile = await profileService.saveProfile(DEFAULT_USER_ID, profileData);
+    const savedProfile = await profileService.saveProfile(userId, profileData);
 
     // Jeśli nie udało się zapisać profilu, zwracamy błąd
     if (!savedProfile) {

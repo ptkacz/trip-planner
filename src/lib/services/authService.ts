@@ -39,6 +39,7 @@ export const authService = {
    */
   async register({ email, password }: RegisterCommand): Promise<AuthResponse> {
     try {
+      // 1. Zarejestruj użytkownika w Supabase Auth
       const { data, error } = await supabaseClient.auth.signUp({
         email,
         password,
@@ -48,6 +49,22 @@ export const authService = {
 
       if (!data.user) {
         return { success: true };
+      }
+
+      // 2. Utwórz rekord w tabeli public.users
+      const { error: insertError } = await supabaseClient.from("users").insert({
+        id: data.user.id,
+        email: data.user.email || "",
+        hashed_password: "auth.stored_in_auth", // Hasło jest przechowywane w systemie auth, tutaj tylko placeholder
+        created_at: data.user.created_at || new Date().toISOString(),
+        updated_at: data.user.updated_at || new Date().toISOString(),
+      });
+
+      if (insertError) {
+        console.error("Błąd tworzenia użytkownika w bazie danych:", insertError);
+        // Jeśli wystąpił błąd przy tworzeniu rekordu w public.users, ale użytkownik został już utworzony w auth,
+        // zwracamy sukces, aby użytkownik nie był zdezorientowany, ale logujemy błąd
+        // TODO: Lepsze rozwiązanie to dodanie procesu naprawy tych niezgodności
       }
 
       const user: Partial<UserDTO> = {
