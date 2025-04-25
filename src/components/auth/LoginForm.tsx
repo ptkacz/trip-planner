@@ -4,13 +4,9 @@ import { Input } from "../ui/input";
 import { Card, CardContent } from "../ui/card";
 import { Label } from "../ui/label";
 import { Alert, AlertDescription } from "../ui/alert";
-import { z } from "zod";
-
-// Schema walidacji
-const loginSchema = z.object({
-  email: z.string().email("Niepoprawny format adresu email"),
-  password: z.string().min(1, "Hasło jest wymagane"),
-});
+import { useZodForm } from "@/lib/hooks/useForm";
+import { loginSchema } from "@/lib/hooks/useAuth";
+import type { LoginFormValues } from "@/lib/hooks/useAuth";
 
 interface LoginFormProps {
   onSubmit: (email: string, password: string) => Promise<boolean>;
@@ -22,79 +18,56 @@ const LoginForm: React.FC<LoginFormProps> = (props) => {
   const { isLoading: initialLoading = false, error: initialError } = props;
   const onSubmit = props.onSubmit;
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [formErrors, setFormErrors] = useState<{ email?: string; password?: string }>({});
   const [isLoading, setIsLoading] = useState(initialLoading);
   const [error, setError] = useState(initialError);
 
-  const validateForm = (): boolean => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useZodForm(loginSchema);
+
+  const onSubmitForm = async (data: LoginFormValues) => {
+    setIsLoading(true);
+    setError(undefined);
+
     try {
-      loginSchema.parse({ email, password });
-      setFormErrors({});
-      return true;
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const errors = error.errors.reduce(
-          (acc, curr) => {
-            const path = curr.path[0] as string;
-            acc[path as keyof typeof acc] = curr.message;
-            return acc;
-          },
-          {} as { email?: string; password?: string }
-        );
-        setFormErrors(errors);
+      if (typeof onSubmit !== "function") {
+        console.error("onSubmit nie jest funkcją:", onSubmit);
+        setError("Problem z funkcją logowania. Skontaktuj się z administratorem.");
+        return;
       }
-      return false;
-    }
-  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (validateForm()) {
-      setIsLoading(true);
-      setError(undefined);
-
-      try {
-        // Sprawdzam, czy onSubmit jest funkcją
-        if (typeof onSubmit !== "function") {
-          console.error("onSubmit nie jest funkcją:", onSubmit);
-          setError("Problem z funkcją logowania. Skontaktuj się z administratorem.");
-          return;
-        }
-
-        const success = await onSubmit(email, password);
-        if (!success) {
-          setError("Nieprawidłowy email lub hasło");
-        }
-      } catch (err) {
-        console.error("Błąd podczas logowania:", err);
-        setError(err instanceof Error ? err.message : "Wystąpił błąd podczas logowania");
-      } finally {
-        setIsLoading(false);
+      const success = await onSubmit(data.email, data.password);
+      if (!success) {
+        setError("Nieprawidłowy email lub hasło");
       }
+    } catch (err) {
+      console.error("Błąd podczas logowania:", err);
+      setError(err instanceof Error ? err.message : "Wystąpił błąd podczas logowania");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardContent className="pt-6">
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Adres email</Label>
             <Input
               id="email"
               type="email"
               placeholder="twoj@email.com"
-              value={email}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
               disabled={isLoading}
-              aria-invalid={!!formErrors.email}
-              aria-describedby={formErrors.email ? "email-error" : undefined}
+              aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? "email-error" : undefined}
+              {...register("email")}
             />
-            {formErrors.email && (
+            {errors.email && (
               <p id="email-error" className="text-sm text-red-500">
-                {formErrors.email}
+                {errors.email.message}
               </p>
             )}
           </div>
@@ -110,15 +83,14 @@ const LoginForm: React.FC<LoginFormProps> = (props) => {
               id="password"
               type="password"
               placeholder="••••••••"
-              value={password}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
               disabled={isLoading}
-              aria-invalid={!!formErrors.password}
-              aria-describedby={formErrors.password ? "password-error" : undefined}
+              aria-invalid={!!errors.password}
+              aria-describedby={errors.password ? "password-error" : undefined}
+              {...register("password")}
             />
-            {formErrors.password && (
+            {errors.password && (
               <p id="password-error" className="text-sm text-red-500">
-                {formErrors.password}
+                {errors.password.message}
               </p>
             )}
           </div>

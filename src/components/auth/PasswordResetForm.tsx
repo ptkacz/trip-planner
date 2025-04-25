@@ -1,15 +1,12 @@
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { z } from "zod";
-
-// Schema walidacji
-const resetPasswordSchema = z.object({
-  email: z.string().email("Niepoprawny format adresu email"),
-});
+import { useZodForm } from "@/lib/hooks/useForm";
+import { resetPasswordSchema } from "@/lib/hooks/useAuth";
+import type { ResetPasswordFormValues } from "@/lib/hooks/useAuth";
 
 interface PasswordResetFormProps {
   onSubmit: (email: string) => void;
@@ -24,35 +21,14 @@ const PasswordResetForm: React.FC<PasswordResetFormProps> = ({
   error,
   success = false,
 }) => {
-  const [email, setEmail] = useState("");
-  const [formErrors, setFormErrors] = useState<{ email?: string }>({});
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useZodForm(resetPasswordSchema);
 
-  const validateForm = (): boolean => {
-    try {
-      resetPasswordSchema.parse({ email });
-      setFormErrors({});
-      return true;
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const errors = error.errors.reduce(
-          (acc, curr) => {
-            const path = curr.path[0] as string;
-            acc[path as keyof typeof acc] = curr.message;
-            return acc;
-          },
-          {} as { email?: string }
-        );
-        setFormErrors(errors);
-      }
-      return false;
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (validateForm()) {
-      onSubmit(email);
-    }
+  const onSubmitForm = (data: ResetPasswordFormValues) => {
+    onSubmit(data.email);
   };
 
   return (
@@ -67,22 +43,21 @@ const PasswordResetForm: React.FC<PasswordResetFormProps> = ({
             <AlertDescription>Instrukcje resetowania hasła zostały wysłane na podany adres email</AlertDescription>
           </Alert>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Adres email</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="twoj@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
-                aria-invalid={!!formErrors.email}
-                aria-describedby={formErrors.email ? "email-error" : undefined}
+                aria-invalid={!!errors.email}
+                aria-describedby={errors.email ? "email-error" : undefined}
+                {...register("email")}
               />
-              {formErrors.email && (
+              {errors.email && (
                 <p id="email-error" className="text-sm text-red-500">
-                  {formErrors.email}
+                  {errors.email.message}
                 </p>
               )}
             </div>
