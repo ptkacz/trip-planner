@@ -1,12 +1,16 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { supabaseClient, DEFAULT_USER_ID } from "../db/supabase.client";
+import { supabaseClient } from "../db/supabase.client";
 import { ProfileService } from "../lib/services/profileService";
 import BackToHomeButton from "@/components/BackToHomeButton";
 
 // Pobranie profilu użytkownika
 const profileService = new ProfileService(supabaseClient);
-const userProfile = await profileService.getProfile(DEFAULT_USER_ID);
+// Pobierz ID zalogowanego użytkownika z kontekstu Astro
+const userId = Astro.locals.userId;
+
+// Pobranie profilu zalogowanego użytkownika
+const userProfile = userId ? await profileService.getProfile(userId) : null;
 
 // Pobranie wartości z profilu lub ustawienie domyślnych wartości pustych
 const travelType = userProfile?.travel_type || "";
