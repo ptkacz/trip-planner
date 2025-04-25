@@ -148,9 +148,8 @@ const redirectUrl = "/generate";
                 class="w-full p-2 border rounded-md"
                 placeholder="Wprowadź swoje preferencje podróżnicze, miejsca które chciałbyś odwiedzić, itp."
                 required
-              >
-                {noteData.note_text}
-              </textarea>
+                set:html={noteData.note_text}
+              />
               <p class="text-xs text-gray-500 mt-1">Te notatki zostaną wykorzystane przy generowaniu planu podróży.</p>
             </div>
 
