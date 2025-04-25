@@ -23,7 +23,7 @@ const redirectTo = Astro.url.searchParams.get("redirect") || "/";
       isLoggedIn ? (
         <Card className="w-full max-w-md">
           <CardContent className="p-6 text-center">
-            <p class="mb-4">Jesteś już zalogowany jako {userEmail}.</p>
+            <p class="mb-4">Zostałeś zalogowany jako {userEmail}.</p>
             <a href={redirectTo} class="inline-block px-4 py-2 bg-primary text-white rounded-md text-sm font-medium">
               Przejdź dalej
             </a>
