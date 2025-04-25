@@ -51,10 +51,16 @@ export class TripGeneratorViewPage {
   /**
    * Czeka, aż plan zostanie wygenerowany
    */
-  async waitForPlanGeneration() {
-    // Czekamy aż przycisk przestanie być w stanie ładowania
+  async waitForPlanGeneration(maxTimeout = 15000) {
+    const startTime = Date.now();
+
+    // Czekamy aż przycisk przestanie być w stanie ładowania, ale nie dłużej niż maxTimeout
     while (await this.formPOM.isGenerateButtonLoading()) {
-      await this.page.waitForTimeout(500);
+      if (Date.now() - startTime > maxTimeout) {
+        // Jeśli przekroczono maksymalny czas oczekiwania, przerywamy pętlę
+        break;
+      }
+      await this.page.waitForTimeout(300);
     }
 
     // Czekamy na wyświetlenie planu

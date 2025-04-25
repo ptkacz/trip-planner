@@ -44,6 +44,15 @@ export class TripGeneratorFormPage {
   }
 
   /**
+   * Czyści formularz generowania planu podróży
+   */
+  async clearForm() {
+    await this.startCountryInput.fill("");
+    await this.startCityInput.fill("");
+    await this.maxDistanceInput.fill("");
+  }
+
+  /**
    * Wysyła formularz generowania planu podróży
    */
   async generateTrip() {
