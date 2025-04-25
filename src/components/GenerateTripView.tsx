@@ -256,6 +256,7 @@ const GenerateTripView: React.FC = () => {
 
     setIsLoading(true);
     setError("");
+    setIsLoadingPlan(true);
 
     try {
       // Wywołanie API poprzez endpoint
@@ -284,6 +285,7 @@ const GenerateTripView: React.FC = () => {
       setError(err instanceof Error ? err.message : "Wystąpił błąd podczas generowania planu");
     } finally {
       setIsLoading(false);
+      setIsLoadingPlan(false);
     }
   };
 

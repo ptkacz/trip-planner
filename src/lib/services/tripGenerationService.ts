@@ -159,10 +159,9 @@ export class TripGenerationService {
     // Przygotowanie promptu dla LLM
     let prompt = `Stwórz plan podróży zaczynającej się w mieście ${start_city}, ${start_country}. `;
     prompt += `Maksymalna odległość podróży to ${max_distance} km. `;
-    prompt += `Plan powinien zawierać propozycje na 3-5 dni i być szczegółowy - z uwzględnieniem atrakcji, `;
-    prompt += `miejsc noclegowych, transportu i rekomendacji dotyczących lokalnych potraw. `;
-    prompt += `Używaj różnorodnych emoji związanych z podróżowaniem przy każdym punkcie planu (np. 🌍, 🏨, 🍽️, 🚆, 🏛️, 🏖️, 🏔️, 🏞️, itp.). `;
+    prompt += `Plan powinien być szczegółowy - z uwzględnieniem atrakcji, miejsc noclegowych, transportu i rekomendacji dotyczących lokalnych potraw. `;
     prompt += `Plan powinien być podzielony na dni i zawierać nagłówki z numerami dni. `;
+    prompt += `Używaj różnorodnych emoji związanych z podróżowaniem przy każdym punkcie planu (np. 🌍, 🏨, 🍽️, 🚆, 🏛️, 🏖️, 🏔️, 🏞️, itp.). `;
 
     // Dodanie informacji z profilu użytkownika
     if (userProfile) {
@@ -185,7 +184,7 @@ export class TripGenerationService {
 
     // Dodanie informacji z notatek użytkownika
     if (notesContent.length > 0) {
-      prompt += `Uwzględnij następujące notatki użytkownika w planie podróży: \n\n`;
+      prompt += `Uwzględnij następujące notatki użytkownika w planie podróży (w tym preferencje dotyczące długości wycieczki): \n\n`;
       notesContent.forEach((note, index) => {
         prompt += `Notatka ${index + 1}: ${note}\n\n`;
       });

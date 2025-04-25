@@ -8,26 +8,35 @@ export const prerender = false;
 // Handler dla metody GET
 export const GET: APIRoute = async ({ locals }) => {
   try {
-    // Pobierz ID użytkownika z sesji
-    const userId = locals.userId;
-    if (!userId) {
-      return new Response(
-        JSON.stringify({
-          status: "error",
-          message: "Brak autoryzacji",
-        }),
-        { status: 401, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
     // Inicjalizacja serwisu
     const tripPlanService = new TripPlanService(supabaseClient);
 
-    // Pobranie planu podróży z bazy danych
-    const tripPlanData = await tripPlanService.getPlan(userId);
+    // Jeśli użytkownik jest zalogowany, pobieramy jego plan
+    if (locals.userId) {
+      // Pobranie planu podróży z bazy danych
+      const tripPlanData = await tripPlanService.getPlan(locals.userId);
 
-    // Jeśli nie znaleziono planu, zwracamy odpowiedź z informacją o braku planu
-    if (!tripPlanData) {
+      // Jeśli nie znaleziono planu, zwracamy odpowiedź z informacją o braku planu
+      if (!tripPlanData) {
+        return new Response(
+          JSON.stringify({
+            status: "success",
+            data: null,
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+      }
+
+      // Zwrócenie odpowiedzi
+      return new Response(
+        JSON.stringify({
+          status: "success",
+          data: tripPlanData,
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    } else {
+      // Dla niezalogowanego użytkownika zwracamy null (co spowoduje wyświetlenie mocka)
       return new Response(
         JSON.stringify({
           status: "success",
@@ -36,15 +45,6 @@ export const GET: APIRoute = async ({ locals }) => {
         { status: 200, headers: { "Content-Type": "application/json" } }
       );
     }
-
-    // Zwrócenie odpowiedzi
-    return new Response(
-      JSON.stringify({
-        status: "success",
-        data: tripPlanData,
-      }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    );
   } catch (error) {
     console.error("Błąd podczas pobierania planu podróży:", error);
 

@@ -18,18 +18,6 @@ export const prerender = false;
 // Handler dla metody POST
 export const POST: APIRoute = async ({ request, locals }) => {
   try {
-    // Pobierz ID użytkownika z sesji
-    const userId = locals.userId;
-    if (!userId) {
-      return new Response(
-        JSON.stringify({
-          status: "error",
-          message: "Brak autoryzacji",
-        }),
-        { status: 401, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
     // 1. Parsowanie i walidacja danych wejściowych
     const requestData = await request.json();
     const validationResult = GenerateTripCommandSchema.safeParse(requestData);
@@ -49,7 +37,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     // 2. Wywołanie serwisu generacji trasy
     const tripGenerationService = new TripGenerationService(supabaseClient);
-    const tripPlanData = await tripGenerationService.generateTrip(userId, validatedData);
+    const tripPlanData = await tripGenerationService.generateTrip(locals.userId || "", validatedData);
 
     // 3. Zwrócenie odpowiedzi
     return new Response(
