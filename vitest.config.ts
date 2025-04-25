@@ -8,6 +8,7 @@ export default defineConfig({
     environment: "happy-dom",
     globals: true,
     include: ["src/**/*.{test,spec}.{js,ts,jsx,tsx}"],
+    exclude: ["src/tests/e2e/**/*", "e2e/**/*", "node_modules/**/*"],
     setupFiles: ["./src/tests/setup.ts"],
     environmentMatchGlobs: [
       // Używaj happy-dom dla testów komponentów React
