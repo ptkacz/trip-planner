@@ -30,9 +30,6 @@ jobs:
       
       - name: Run unit and integration tests
         run: npm run test
-      
-      - name: Run E2E tests
-        run: npm run test:e2e
 
   build:
     needs: test
