@@ -38,10 +38,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: |
-          npm ci
-          # Upewnij się, że pakiet coverage jest zainstalowany
-          npm install --no-save @vitest/coverage-v8
+        run: npm ci
 
       - name: Run unit tests with coverage
         run: npm run test -- --coverage
@@ -68,10 +65,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: |
-          npm ci
-          # Upewnij się, że wszystkie potrzebne pakiety Radix UI są zainstalowane
-          npm install --no-save @radix-ui/react-dropdown-menu
+        run: npm ci
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
