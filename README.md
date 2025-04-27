@@ -1,4 +1,4 @@
-# TripPlanner (MVP) test1
+# TripPlanner (MVP) test2
 
 ## Table of Contents
 - [Project Name](#project-name)
