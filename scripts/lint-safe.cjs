@@ -101,11 +101,6 @@ function main() {
   console.log(
     `\nSprawdzanie zakończone ${allSuccess ? "pomyślnie" : `z ${warnings} plikami zawierającymi ostrzeżenia`}.`
   );
-
-  console.log("\nWażne: Ten skrypt używa uproszczonej konfiguracji ESLint i może nie wykrywać wszystkich błędów.");
-  console.log(
-    "Służy on głównie do szybkiego wykrywania podstawowych problemów w kodzie bez konfliktów z istniejącą konfiguracją ESLint."
-  );
 }
 
 main();
